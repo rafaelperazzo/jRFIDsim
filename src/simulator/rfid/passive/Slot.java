@@ -2,6 +2,11 @@ package simulator.rfid.passive;
 
 import java.util.ArrayList;
 
+/**
+ * 
+ * @author Rafael Perazzo Barbosa Mota
+ *
+ */
 public class Slot {
 
 	private ArrayList<Tag> tags = new ArrayList<Tag>();

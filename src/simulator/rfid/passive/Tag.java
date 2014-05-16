@@ -2,6 +2,11 @@ package simulator.rfid.passive;
 
 import java.util.Random;
 
+/**
+ * 
+ * @author Rafael Perazzo Barbosa Mota
+ *
+ */
 public class Tag {
 
 	private int code;

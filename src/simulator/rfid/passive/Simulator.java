@@ -22,113 +22,113 @@ public class Simulator implements Runnable{
 	/**
 	 * Set of Tags (List of tags)
 	 */
-	private ArrayList<Tag> tags = new ArrayList<Tag>();
+	protected ArrayList<Tag> tags = new ArrayList<Tag>();
 	
 	/**
 	 * Each frame is a List of Slots
 	 */
-	private ArrayList<Slot> frame = new ArrayList<Slot>();	
+	protected ArrayList<Slot> frame = new ArrayList<Slot>();	
 	/**
 	 * Collision Slots Counter
 	 */
-	private int col; 
+	protected int col; 
 	
 	/**
 	 * Success Slots Counter
 	 */
-	private int suc;
+	protected int suc;
 	
 	/**
 	 * Idle Slots COunter
 	 */
-	private int idl;
+	protected int idl;
 	
 	/**
 	 * Number of Tags
 	 */
-	private int numberOfTags;
+	protected int numberOfTags;
 	
 	/**
 	 * Number of Frames
 	 */
 	
-	private int frames;
+	protected int frames;
 	
 	/**
 	 * System Efficiency
 	 */
-	private float sef;
+	protected float sef;
 	
 	/**
 	 * Initial Frame Size
 	 */
-	private int initialFrameSize;
+	protected int initialFrameSize;
 	
 	/**
 	 * Current Frame Size
 	 */
-	private int currentFrameSize;
+	protected int currentFrameSize;
 	
 	/**
 	 * Total number of used slots
 	 */
-	private int totalSlots;
+	protected int totalSlots;
 	
 	/**
 	 * End of DFSA ?
 	 */
-	private boolean end;
+	protected boolean end;
 	
 	/**
 	 * DFSA method (Schoute, Eom-Lee, ...)
 	 */
-	private int method;
+	protected int method;
 	
 	/**
 	 * Trace filename to store Sef Values
 	 */
-	private String traceSefFilename;
+	protected String traceSefFilename;
 	
 	/**
 	 * Trace filename to store Total Used Slots Values
 	 */
-	private String traceTotalSlotsFilename;
+	protected String traceTotalSlotsFilename;
 	
 	/**
 	 * Number of repetitions
 	 */
-	private int iterations;
+	protected int iterations;
 	
 	/**
 	 * Statistcs for total number of used slots
 	 */
-	private DescriptiveStatistics statsTotal = new DescriptiveStatistics();
+	protected DescriptiveStatistics statsTotal = new DescriptiveStatistics();
 	
 	/**
 	 * Stats total File
 	 */
-	private String statsTotalFile;
+	protected String statsTotalFile;
 	
 	/**
 	 * Statistics for System Efficiency 
 	 */
-	private DescriptiveStatistics statsSef = new DescriptiveStatistics();
+	protected DescriptiveStatistics statsSef = new DescriptiveStatistics();
 	
 	/**
 	 * Stats System Efficiency File
 	 */
-	private String statsSefFile;
+	protected String statsSefFile;
 	
 	/**
 	 * Confidence Level. Ex: 90%, 99%, 95%, ...
 	 */
-	private double confidenceLevel;
+	protected double confidenceLevel;
 	
-	private int maxTags;
+	protected int maxTags;
 	
-	private int stepTags;
+	protected int stepTags;
 	
-	private int minTags;
+	protected int minTags;
 	
 	/**
 	 * Default Constructor
@@ -181,7 +181,7 @@ public class Simulator implements Runnable{
 		
 	}
 	
-	private void initData() {
+	protected void initData() {
 		this.col = 0;
 		this.suc = 0;
 		this.idl = 0;
@@ -198,7 +198,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Create all tags with their EPC Codes
 	 */
-	private void initTagList() {
+	protected void initTagList() {
 		for (int i=0; i<this.numberOfTags;i++) {
 			tags.add(new Tag(i));
 		}
@@ -216,7 +216,7 @@ public class Simulator implements Runnable{
 	 * Calculate the next frame size
 	 * @return Next frame size based on Schoute formula
 	 */
-	private int schoute() {
+	protected int schoute() {
 		double c = 2.59;
 		double frameSize = c * this.col;
 		return ((int)Math.round(frameSize));
@@ -226,7 +226,7 @@ public class Simulator implements Runnable{
 	 * Calculate the next frame size
 	 * @return Next frame size based on EomLee formula
 	 */
-	private int eomlee() {
+	protected int eomlee() {
 		//TODO Implementar Eom-Lee
 		return (this.col*2);
 	}
@@ -234,7 +234,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Add slots to current frame
 	 */
-	private void initCurrentFrame() {
+	protected void initCurrentFrame() {
 		for (int i=0; i<this.currentFrameSize; i++) {
 			frame.add(new Slot());
 		}
@@ -243,7 +243,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Tags should generate a random Number
 	 */
-	private void sendQuery() {
+	protected void sendQuery() {
 		for (int i=0; i<this.tags.size(); i++) {
 			tags.get(i).setRng16(this.currentFrameSize);
 		}
@@ -252,7 +252,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Set up each slot
 	 */
-	private void prepareSlots() {
+	protected void prepareSlots() {
 		for (int i=0; i<this.tags.size(); i++) {
 			int rng16 = tags.get(i).getRng16();
 			frame.get(rng16).addTag(tags.get(i));
@@ -262,8 +262,8 @@ public class Simulator implements Runnable{
 	/**
 	 * Show tags in slots
 	 */
-	@SuppressWarnings("unused")
-	private void showFrame() {
+	
+	protected void showFrame() {
 		for (int i=0; i<this.currentFrameSize; i++) {
 			for (int j=0; j<this.frame.get(i).getSlotSize(); j++) {
 				System.out.println("Slot[" + i + "," + j + "]: " + frame.get(i).getTags().get(j).getCode());
@@ -274,7 +274,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Identify tags in current frame
 	 */
-	private void identifyTags() {
+	protected void identifyTags() {
 		for (int i=0; i<this.currentFrameSize; i++) {
 			if (frame.get(i).getSlotSize()>1) {
 				this.col++;
@@ -292,7 +292,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Prepare next frame size
 	 */
-	private void finalizeFrame() {
+	protected void finalizeFrame() {
 		this.totalSlots = this.totalSlots + this.currentFrameSize;
 		if (this.col==0) {
 			this.end = true;
@@ -322,7 +322,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Start the Standard DFSA procedure
 	 */
-	private void standardDfsa() {
+	protected void standardDfsa() {
 		do {
 			this.initCurrentFrame();
 			this.sendQuery();
@@ -334,8 +334,8 @@ public class Simulator implements Runnable{
 	}
 	
 	
-	@SuppressWarnings("unused")
-	private void showResults() {
+	
+	protected void showResults() {
 		System.out.println("---------------------------------------------");
 		System.out.println("Fim do Frame " + (this.frames));
 		System.out.println("Proximo Quadro: " + this.currentFrameSize);
@@ -351,7 +351,7 @@ public class Simulator implements Runnable{
 	 * Remove identified tag
 	 * @param code EPC Code from identified tag
 	 */
-	private void removeTag(int code) {
+	protected void removeTag(int code) {
 		for (int i=0; i<tags.size(); i++) {
 			if (tags.get(i).getCode()==code) {
 				tags.remove(i);
@@ -395,8 +395,8 @@ public class Simulator implements Runnable{
 	/**
 	 * Write Sef Values to file
 	 */
-	@SuppressWarnings("unused")
-	private void writeOutputToFile() {
+	
+	protected void writeOutputToFile() {
 		File file = new File(this.traceSefFilename);
 		File total = new File(this.traceTotalSlotsFilename);
 		if (!file.exists()) {
@@ -438,7 +438,7 @@ public class Simulator implements Runnable{
 	/**
 	 * Write stats to files
 	 */
-	private void writeStatsToFile() {
+	protected void writeStatsToFile() {
 		File sef = new File(this.statsSefFile);
 		File total = new File(this.statsTotalFile);
 		if (!sef.exists()) {
@@ -489,7 +489,7 @@ public class Simulator implements Runnable{
 	 * @param confidence Confidence Level constant
 	 * @return An array with lower and upper confidence interval
 	 */
-	private double[] confidenceInterval(double mean, double standardDev, double confidence) {
+	protected double[] confidenceInterval(double mean, double standardDev, double confidence) {
 		
 		double[] resultado = new double[2];
 		
@@ -509,7 +509,12 @@ public class Simulator implements Runnable{
 		return Math.abs((n.inverseCumulativeProbability(value/200)));
 	}
 	
-	private void writeToFile(String msg, String filename) {
+	/**
+	 * Write a String to a specified text file
+	 * @param msg Message
+	 * @param filename File name
+	 */
+	protected void writeToFile(String msg, String filename) {
 		File runStats = new File("stats.txt");
 		if (!runStats.exists()) {
 			try {
@@ -542,19 +547,21 @@ public class Simulator implements Runnable{
 		timer.stop();
 		String msg = "[" + String.valueOf(this.method) + "] " + "Execution time: " + String.valueOf(timer.getTime()/1000) + " seconds";
  		this.writeToFile(msg, "stats.txt");
-		System.out.println("Tempo de execução: " + timer.getTime()/1000 + " segundos");
+		//System.out.println("Tempo de execução: " + timer.getTime()/1000 + " segundos");
 		Runtime runtime = Runtime.getRuntime();
-	    // Run the garbage collector
-	    //runtime.gc();
-	    // Calculate the used memory
 	    long memory = runtime.totalMemory() - runtime.freeMemory();
 	    this.writeToFile("Used memory :" + bytesToMegabytes(memory) + " Mbytes","stats.txt");
 	    this.writeToFile("--------------------------", "stats.txt");
 	}
 	
-	private static final long MEGABYTE = 1024L * 1024L;
+	protected static final long MEGABYTE = 1024L * 1024L;
 	
-	private static long bytesToMegabytes(long bytes) {
+	/**
+	 * Convert bytes to megabytes
+	 * @param bytes Number of bytes to be converted
+	 * @return Value converted to Megabytes
+	 */
+	protected static long bytesToMegabytes(long bytes) {
 	    return bytes / MEGABYTE;
 	}
 	
