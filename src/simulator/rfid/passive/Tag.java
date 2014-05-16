@@ -39,7 +39,7 @@ public class Tag {
 	
 	public void setRng16(int up) {
 		this.rng16 = generator.nextInt(up);
-		this.rng16 = generator.nextInt(up);
+		//this.rng16 = generator.nextInt(up);
 	}
 
 	public int getRng16() {

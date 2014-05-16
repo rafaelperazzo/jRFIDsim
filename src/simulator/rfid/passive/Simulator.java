@@ -1,6 +1,13 @@
 package simulator.rfid.passive;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 /**
  * Simulator Class to allow performance evaluation of passive RFID anti-collision algorithms
@@ -9,7 +16,7 @@ import java.util.ArrayList;
  *
  */
 
-public class Simulator {
+public class Simulator implements Runnable{
 	
 	/**
 	 * Set of Tags (List of tags)
@@ -77,6 +84,46 @@ public class Simulator {
 	private int method;
 	
 	/**
+	 * Trace filename to store Sef Values
+	 */
+	private String traceSefFilename;
+	
+	/**
+	 * Trace filename to store Total Used Slots Values
+	 */
+	private String traceTotalSlotsFilename;
+	
+	/**
+	 * Number of repetitions
+	 */
+	private int iterations;
+	
+	/**
+	 * Statistcs for total number of used slots
+	 */
+	private DescriptiveStatistics statsTotal = new DescriptiveStatistics();
+	
+	/**
+	 * Stats total File
+	 */
+	private String statsTotalFile;
+	
+	/**
+	 * Statistics for System Efficiency 
+	 */
+	private DescriptiveStatistics statsSef = new DescriptiveStatistics();
+	
+	/**
+	 * Stats System Efficiency File
+	 */
+	private String statsSefFile;
+	
+	/**
+	 * Confidence Level. Ex: 90%, 99%, 95%, ...
+	 */
+	private double confidenceLevel;
+	
+	/**
 	 * Default Constructor
 	 */
 	public Simulator() {
@@ -89,6 +136,8 @@ public class Simulator {
 		this.initialFrameSize = 128;
 		this.currentFrameSize = this.initialFrameSize;
 		this.numberOfTags = 1;
+		statsTotal.clear();
+		statsSef.clear();
 		this.initTagList();
 	}
 	
@@ -97,26 +146,45 @@ public class Simulator {
 	 * Constructor - Must tell the number of tags
 	 * @param numTags Number of Tags
 	 */
-	public Simulator(int numTags, int method) {
+	public Simulator(int numTags, int method, String sefFile, String totalFile, int initialFrameSize, int iterations, double cc) {
+		/*this.col = 0;
+		this.suc = 0;
+		this.idl = 0;
+		this.frames = 1;
+		this.totalSlots = 0;*/
+		this.method = method;
+		this.traceSefFilename = sefFile;
+		this.traceTotalSlotsFilename = totalFile;
+		this.statsSefFile = this.traceSefFilename + ".stats";
+		this.statsTotalFile = this.traceTotalSlotsFilename + ".stats";
+		this.confidenceLevel = cc;
+		//this.end = false;
+		this.numberOfTags = numTags;
+		this.initialFrameSize = initialFrameSize;
+		this.iterations = iterations;
+		statsTotal.clear();
+		statsSef.clear();
+		//this.initialFrameSize = 128;
+		//this.currentFrameSize = this.initialFrameSize;
+		//this.initTagList();
+		this.initData();
+		
+	}
+	
+	private void initData() {
 		this.col = 0;
 		this.suc = 0;
 		this.idl = 0;
 		this.frames = 1;
 		this.totalSlots = 0;
-		this.method = method;
 		this.end = false;
-		this.numberOfTags = numTags;
-		this.initialFrameSize = 128;
 		this.currentFrameSize = this.initialFrameSize;
+		this.tags.clear();
+		this.frame.clear();
 		this.initTagList();
-		
 	}
-		
-	public void setInitialFrameSize(int initialFrameSize) {
-		this.initialFrameSize = initialFrameSize;
-	}
-
-
+	
+	
 	/**
 	 * Create all tags with their EPC Codes
 	 */
@@ -149,6 +217,7 @@ public class Simulator {
 	 * @return Next frame size based on EomLee formula
 	 */
 	private int eomlee() {
+		//TODO Implementar Eom-Lee
 		return (this.col*2);
 	}
 	
@@ -225,11 +294,11 @@ public class Simulator {
 			else if (this.method==SimulatorConstants.LOWER) {
 				this.currentFrameSize = this.col*2;
 			}
-			else if (this.method==SimulatorConstants.MOTA) {
-				this.currentFrameSize = (int)(Math.round(this.col*2.65));
-			}
 			else if (this.method==SimulatorConstants.EOMLEE) {
 				this.currentFrameSize = this.eomlee();
+			}
+			else {
+				this.currentFrameSize = this.col*2;
 			}
 			this.col = 0;
 			this.idl = 0;
@@ -298,8 +367,139 @@ public class Simulator {
 	/**
 	 * Start the DFSA procedure
 	 */
-	public void start() {
-		this.standardDfsa();
+	public void startStandardDFSA() {
+		//TODO Variação do número de etiquetas e intervalo de variação
+		for (int i=1; i<=this.iterations; i++) {
+			this.initData();
+			this.standardDfsa();
+			statsTotal.addValue(this.totalSlots);
+			statsSef.addValue((this.numberOfTags/(float)this.totalSlots)); 
+			//this.writeOutputToFile();
+		}
+		this.writeStatsToFile();
+	}
+	
+	/**
+	 * Write Sef Values to file
+	 */
+	@SuppressWarnings("unused")
+	private void writeOutputToFile() {
+		File file = new File(this.traceSefFilename);
+		File total = new File(this.traceTotalSlotsFilename);
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (!total.exists()) {
+			try {
+				total.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		FileWriter fwriter = null;
+		FileWriter fwriterTotal = null;
+		try {
+			fwriter = new FileWriter(file,true);
+			fwriterTotal = new FileWriter(total,true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		PrintWriter out = new PrintWriter(fwriter,true);
+		PrintWriter outTotal = new PrintWriter(fwriterTotal,true);
+		out.println((this.numberOfTags/(float)this.totalSlots));
+		outTotal.println(this.totalSlots );
+		out.close();
+		outTotal.close();
+		try {
+			fwriter.close();
+			fwriterTotal.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Write stats to files
+	 */
+	private void writeStatsToFile() {
+		File sef = new File(this.statsSefFile);
+		File total = new File(this.statsTotalFile);
+		if (!sef.exists()) {
+			try {
+				sef.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (!total.exists()) {
+			try {
+				total.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		FileWriter fwriter = null;
+		FileWriter fwriterTotal = null;
+		try {
+			fwriter = new FileWriter(sef,true);
+			fwriterTotal = new FileWriter(total,true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		PrintWriter out = new PrintWriter(fwriter,true);
+		PrintWriter outTotal = new PrintWriter(fwriterTotal,true);
+		double[] ciSef = this.confidenceInterval(statsSef.getMean(), statsSef.getStandardDeviation(), this.getP());
+		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP());
+		String linhaSef = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsSef.getMean()) + " " + ciSef[0] + " " + ciSef[1]);
+		String linhaTotal = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsTotal.getMean()) + " " + ciTotal[0] + " " + ciTotal[1]);
+		out.println(linhaSef);
+		outTotal.println(linhaTotal);
+		
+		out.close();
+		outTotal.close();
+		try {
+			fwriter.close();
+			fwriterTotal.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Calculates de confidence interval
+	 * @param mean Sample mean
+	 * @param standardDev Sample Standard Deviation
+	 * @param confidence Confidence Level constant
+	 * @return An array with lower and upper confidence interval
+	 */
+	private double[] confidenceInterval(double mean, double standardDev, double confidence) {
+		
+		double[] resultado = new double[2];
+		
+		resultado[0] = mean - (confidence*standardDev)/Math.sqrt(this.numberOfTags);
+		resultado[1] = mean + (confidence*standardDev)/Math.sqrt(this.numberOfTags);
+		
+		return resultado;
+	}
+	
+	/**
+	 * Calculates the Confidence Level constant
+	 * @return Confidence Level constant
+	 */
+	public double getP() { 
+		NormalDistribution n = new NormalDistribution();
+		double value = 100-this.confidenceLevel;
+		return Math.abs((n.inverseCumulativeProbability(value/200)));
+	}
+	
+	@Override
+	public void run() {
+		// TODO Implementar o método run da Thread
+		
 	}
 	
 }

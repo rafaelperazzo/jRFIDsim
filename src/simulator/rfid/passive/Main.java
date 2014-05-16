@@ -3,11 +3,9 @@ package simulator.rfid.passive;
 public class Main {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		Simulator s = new Simulator(20000,SimulatorConstants.SCHOUTE);
-		s.start();
-		s.showSef();
-		s.showTotal();
+		Simulator s = new Simulator(1000,SimulatorConstants.SCHOUTE, "sef.1000.txt", "total.1000.txt",128,100,90);
+		s.startStandardDFSA();
+		//System.out.println(s.getP());
 	}
 
 }
