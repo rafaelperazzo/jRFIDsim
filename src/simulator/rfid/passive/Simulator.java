@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -123,6 +124,12 @@ public class Simulator implements Runnable{
 	 */
 	private double confidenceLevel;
 	
+	private int maxTags;
+	
+	private int stepTags;
+	
+	private int minTags;
+	
 	/**
 	 * Default Constructor
 	 */
@@ -146,7 +153,7 @@ public class Simulator implements Runnable{
 	 * Constructor - Must tell the number of tags
 	 * @param numTags Number of Tags
 	 */
-	public Simulator(int numTags, int method, String sefFile, String totalFile, int initialFrameSize, int iterations, double cc) {
+	public Simulator(int numTags, int method, String sefFile, String totalFile, int initialFrameSize, int iterations, double cc, int maxTags, int stepTags) {
 		/*this.col = 0;
 		this.suc = 0;
 		this.idl = 0;
@@ -158,6 +165,9 @@ public class Simulator implements Runnable{
 		this.statsSefFile = this.traceSefFilename + ".stats";
 		this.statsTotalFile = this.traceTotalSlotsFilename + ".stats";
 		this.confidenceLevel = cc;
+		this.maxTags = maxTags;
+		this.stepTags = stepTags;
+		this.minTags = numTags;
 		//this.end = false;
 		this.numberOfTags = numTags;
 		this.initialFrameSize = initialFrameSize;
@@ -369,14 +379,17 @@ public class Simulator implements Runnable{
 	 */
 	public void startStandardDFSA() {
 		//TODO Variação do número de etiquetas e intervalo de variação
-		for (int i=1; i<=this.iterations; i++) {
-			this.initData();
-			this.standardDfsa();
-			statsTotal.addValue(this.totalSlots);
-			statsSef.addValue((this.numberOfTags/(float)this.totalSlots)); 
-			//this.writeOutputToFile();
+		for (this.numberOfTags=this.minTags; this.numberOfTags<=this.maxTags; this.numberOfTags = this.numberOfTags+ this.stepTags) {
+			for (int i=1; i<=this.iterations; i++) {
+				this.initData();
+				this.standardDfsa();
+				statsTotal.addValue(this.totalSlots);
+				statsSef.addValue((this.numberOfTags/(float)this.totalSlots)); 
+				//this.writeOutputToFile();
+			}
+			this.writeStatsToFile();
 		}
-		this.writeStatsToFile();
+		
 	}
 	
 	/**
@@ -496,10 +509,53 @@ public class Simulator implements Runnable{
 		return Math.abs((n.inverseCumulativeProbability(value/200)));
 	}
 	
+	private void writeToFile(String msg, String filename) {
+		File runStats = new File("stats.txt");
+		if (!runStats.exists()) {
+			try {
+				runStats.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		FileWriter writer = null;
+		try {
+			writer = new FileWriter(runStats,true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		PrintWriter out = new PrintWriter(writer,true);
+		out.println(msg);
+		out.close();
+		try {
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void run() {
-		// TODO Implementar o método run da Thread
-		
+		StopWatch timer = new StopWatch();
+		timer.start();
+		this.startStandardDFSA();
+		timer.stop();
+		String msg = "[" + String.valueOf(this.method) + "] " + "Execution time: " + String.valueOf(timer.getTime()/1000) + " seconds";
+ 		this.writeToFile(msg, "stats.txt");
+		System.out.println("Tempo de execução: " + timer.getTime()/1000 + " segundos");
+		Runtime runtime = Runtime.getRuntime();
+	    // Run the garbage collector
+	    //runtime.gc();
+	    // Calculate the used memory
+	    long memory = runtime.totalMemory() - runtime.freeMemory();
+	    this.writeToFile("Used memory :" + bytesToMegabytes(memory) + " Mbytes","stats.txt");
+	    this.writeToFile("--------------------------", "stats.txt");
+	}
+	
+	private static final long MEGABYTE = 1024L * 1024L;
+	
+	private static long bytesToMegabytes(long bytes) {
+	    return bytes / MEGABYTE;
 	}
 	
 }

@@ -1,0 +1,6 @@
+[1] Execution time: 35 seconds
+Used memory :1672 Mbytes
+--------------------------
+[2] Execution time: 36 seconds
+Used memory :1597 Mbytes
+--------------------------
