@@ -2,6 +2,11 @@ package simulator.rfid.passive;
 
 import java.io.File;
 
+/**
+ * 
+ * @author Rafael Perazzo Barbosa Mota
+ *
+ */
 public class Main {
 
 	public static void main(String[] args) {

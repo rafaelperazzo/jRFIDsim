@@ -124,10 +124,19 @@ public class Simulator implements Runnable{
 	 */
 	protected double confidenceLevel;
 	
+	/**
+	 * Max number of tags to be evaluated
+	 */
 	protected int maxTags;
 	
+	/**
+	 * The number of tags to be added to current number of tags
+	 */
 	protected int stepTags;
 	
+	/**
+	 * Min number of tags to be evaluated
+	 */
 	protected int minTags;
 	
 	/**
@@ -150,8 +159,16 @@ public class Simulator implements Runnable{
 	
 	
 	/**
-	 * Constructor - Must tell the number of tags
-	 * @param numTags Number of Tags
+	 * Constructor
+	 * @param numTags Initial number of tags
+	 * @param method DFSA method
+	 * @param sefFile System Efficiency File name
+	 * @param totalFile Total number of used slots file name
+	 * @param initialFrameSize Initial frame size
+	 * @param iterations Number of repetitions
+	 * @param cc Confidence interval (90%, 95%, 99% , ...
+	 * @param maxTags Final number of tags
+	 * @param stepTags Steps to the number of tags
 	 */
 	public Simulator(int numTags, int method, String sefFile, String totalFile, int initialFrameSize, int iterations, double cc, int maxTags, int stepTags) {
 		/*this.col = 0;
@@ -181,6 +198,9 @@ public class Simulator implements Runnable{
 		
 	}
 	
+	/**
+	 * Reset the simulation parameters
+	 */
 	protected void initData() {
 		this.col = 0;
 		this.suc = 0;
@@ -378,7 +398,6 @@ public class Simulator implements Runnable{
 	 * Start the DFSA procedure
 	 */
 	public void startStandardDFSA() {
-		//TODO Variação do número de etiquetas e intervalo de variação
 		for (this.numberOfTags=this.minTags; this.numberOfTags<=this.maxTags; this.numberOfTags = this.numberOfTags+ this.stepTags) {
 			for (int i=1; i<=this.iterations; i++) {
 				this.initData();
@@ -564,5 +583,9 @@ public class Simulator implements Runnable{
 	protected static long bytesToMegabytes(long bytes) {
 	    return bytes / MEGABYTE;
 	}
+	
+	//TODO Implementar Algoritmo Q
+	
+	//TODO Implementar NEDFSA
 	
 }
