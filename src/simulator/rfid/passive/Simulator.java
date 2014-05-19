@@ -205,17 +205,12 @@ public class Simulator implements Runnable{
 	 * @param stepTags Steps to the number of tags
 	 */
 	public Simulator(int numTags, int method, String sefFile, String totalFile, int initialFrameSize, int iterations, double cc, int maxTags, int stepTags) {
-		/*this.col = 0;
-		this.suc = 0;
-		this.idl = 0;
-		this.frames = 1;
-		this.totalSlots = 0;*/
+		
 		this.method = method;
 		this.traceSefFilename = sefFile;
 		this.traceTotalSlotsFilename = totalFile;
 		this.statsSefFile = this.traceSefFilename + ".stats";
 		this.statsTotalFile = this.traceTotalSlotsFilename + ".stats";
-		this.statsInstFile = "instructions.stats";
 		this.confidenceLevel = cc;
 		this.maxTags = maxTags;
 		this.stepTags = stepTags;
@@ -231,12 +226,20 @@ public class Simulator implements Runnable{
 			this.initialFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
 		}
 		this.iCounter = 0;
+		this.statsSefFile = "01_SEF." + SimulatorConstants.getName(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
+		this.statsTotalFile = "02_TOTAL." + SimulatorConstants.getName(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
+		this.statsInstFile = "03_FRAMES." + SimulatorConstants.getName(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
+		File f = new File(this.statsInstFile);
+		if (f.exists()) f.delete();
+		f = new File(this.statsSefFile);
+		if (f.exists()) f.delete();
+		f = new File(this.statsTotalFile);
+		if (f.exists()) f.delete();
+		f = new File("stats.txt");
+		if (f.exists()) f.delete();
 		statsTotal.clear();
 		statsSef.clear();
 		statsInst.clear();
-		//this.initialFrameSize = 128;
-		//this.currentFrameSize = this.initialFrameSize;
-		//this.initTagList();
 		this.initData();
 		
 	}
@@ -766,7 +769,7 @@ public class Simulator implements Runnable{
 	protected void writeStatsToFile() {
 		File sef = new File(this.statsSefFile);
 		File total = new File(this.statsTotalFile);
-		File counter = new File(this.statsInstFile + "." + SimulatorConstants.getName(this.method));
+		File counter = new File(this.statsInstFile);
 		if (!sef.exists()) {
 			try {
 				sef.createNewFile();
