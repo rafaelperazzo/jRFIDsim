@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -28,6 +29,7 @@ public class Simulator implements Runnable{
 	 * Each frame is a List of Slots
 	 */
 	protected ArrayList<Slot> frame = new ArrayList<Slot>();	
+	
 	/**
 	 * Collision Slots Counter
 	 */
@@ -120,6 +122,16 @@ public class Simulator implements Runnable{
 	protected String statsSefFile;
 	
 	/**
+	 * Statistics for Instructions counter 
+	 */
+	protected DescriptiveStatistics statsInst = new DescriptiveStatistics();
+	
+	/**
+	 * Stats System Efficiency File
+	 */
+	protected String statsInstFile;
+	
+	/**
 	 * Confidence Level. Ex: 90%, 99%, 95%, ...
 	 */
 	protected double confidenceLevel;
@@ -140,6 +152,26 @@ public class Simulator implements Runnable{
 	protected int minTags;
 	
 	/**
+	 * Q Value of Q Algorithm
+	 */
+	protected int qValue;
+	
+	/**
+	 * Float value of qValue
+	 */
+	protected double qfp;
+	
+	/**
+	 * Constant c
+	 */
+	protected double c;
+	
+	/**
+	 * SendQuery Counter
+	 */
+	protected int iCounter;
+	
+	/**
 	 * Default Constructor
 	 */
 	public Simulator() {
@@ -152,8 +184,10 @@ public class Simulator implements Runnable{
 		this.initialFrameSize = 128;
 		this.currentFrameSize = this.initialFrameSize;
 		this.numberOfTags = 1;
+		this.iCounter = 0;
 		statsTotal.clear();
 		statsSef.clear();
+		statsInst.clear();
 		this.initTagList();
 	}
 	
@@ -181,6 +215,7 @@ public class Simulator implements Runnable{
 		this.traceTotalSlotsFilename = totalFile;
 		this.statsSefFile = this.traceSefFilename + ".stats";
 		this.statsTotalFile = this.traceTotalSlotsFilename + ".stats";
+		this.statsInstFile = "instructions.stats";
 		this.confidenceLevel = cc;
 		this.maxTags = maxTags;
 		this.stepTags = stepTags;
@@ -189,8 +224,16 @@ public class Simulator implements Runnable{
 		this.numberOfTags = numTags;
 		this.initialFrameSize = initialFrameSize;
 		this.iterations = iterations;
+		this.qValue = 4;
+		this.qfp = 4.0;
+		this.c = 0.3;
+		if (this.method==5) {
+			this.initialFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
+		}
+		this.iCounter = 0;
 		statsTotal.clear();
 		statsSef.clear();
+		statsInst.clear();
 		//this.initialFrameSize = 128;
 		//this.currentFrameSize = this.initialFrameSize;
 		//this.initTagList();
@@ -198,6 +241,220 @@ public class Simulator implements Runnable{
 		
 	}
 	
+	/**
+	 * @return the qValue
+	 */
+	public int getqValue() {
+		return qValue;
+	}
+
+
+	/**
+	 * @param qValue the qValue to set
+	 */
+	public void setqValue(int qValue) {
+		this.qValue = qValue;
+	}
+
+
+	/**
+	 * @return the c
+	 */
+	public double getC() {
+		return c;
+	}
+
+
+	/**
+	 * @param c the c to set
+	 */
+	public void setC(double c) {
+		this.c = c;
+	}
+
+
+	/**
+	 * @return the tags
+	 */
+	public ArrayList<Tag> getTags() {
+		return tags;
+	}
+
+	/**
+	 * @return the frame
+	 */
+	public ArrayList<Slot> getFrame() {
+		return frame;
+	}
+
+	/**
+	 * @return the col
+	 */
+	public int getCol() {
+		return col;
+	}
+
+
+	/**
+	 * @return the suc
+	 */
+	public int getSuc() {
+		return suc;
+	}
+
+
+	/**
+	 * @return the idl
+	 */
+	public int getIdl() {
+		return idl;
+	}
+
+
+	/**
+	 * @return the numberOfTags
+	 */
+	public int getNumberOfTags() {
+		return numberOfTags;
+	}
+
+
+	/**
+	 * @return the frames
+	 */
+	public int getFrames() {
+		return frames;
+	}
+
+
+	/**
+	 * @return the initialFrameSize
+	 */
+	public int getInitialFrameSize() {
+		return initialFrameSize;
+	}
+
+
+	/**
+	 * @return the currentFrameSize
+	 */
+	public int getCurrentFrameSize() {
+		return currentFrameSize;
+	}
+
+
+	/**
+	 * @return the totalSlots
+	 */
+	public int getTotalSlots() {
+		return totalSlots;
+	}
+
+
+	/**
+	 * @return the end
+	 */
+	public boolean isEnd() {
+		return end;
+	}
+
+
+	/**
+	 * @return the method
+	 */
+	public int getMethod() {
+		return method;
+	}
+
+
+	/**
+	 * @return the traceSefFilename
+	 */
+	public String getTraceSefFilename() {
+		return traceSefFilename;
+	}
+
+
+	/**
+	 * @return the traceTotalSlotsFilename
+	 */
+	public String getTraceTotalSlotsFilename() {
+		return traceTotalSlotsFilename;
+	}
+
+
+	/**
+	 * @return the iterations
+	 */
+	public int getIterations() {
+		return iterations;
+	}
+
+
+	/**
+	 * @return the statsTotal
+	 */
+	public DescriptiveStatistics getStatsTotal() {
+		return statsTotal;
+	}
+
+
+	/**
+	 * @return the statsTotalFile
+	 */
+	public String getStatsTotalFile() {
+		return statsTotalFile;
+	}
+
+
+	/**
+	 * @return the statsSef
+	 */
+	public DescriptiveStatistics getStatsSef() {
+		return statsSef;
+	}
+
+
+	/**
+	 * @return the statsSefFile
+	 */
+	public String getStatsSefFile() {
+		return statsSefFile;
+	}
+
+
+	/**
+	 * @return the confidenceLevel
+	 */
+	public double getConfidenceLevel() {
+		return confidenceLevel;
+	}
+
+
+	/**
+	 * @return the maxTags
+	 */
+	public int getMaxTags() {
+		return maxTags;
+	}
+
+
+	/**
+	 * @return the stepTags
+	 */
+	public int getStepTags() {
+		return stepTags;
+	}
+
+
+	/**
+	 * @return the minTags
+	 */
+	public int getMinTags() {
+		return minTags;
+	}
+
+
 	/**
 	 * Reset the simulation parameters
 	 */
@@ -207,7 +464,14 @@ public class Simulator implements Runnable{
 		this.idl = 0;
 		this.frames = 1;
 		this.totalSlots = 0;
+		this.iCounter = 0;
 		this.end = false;
+		this.qValue = 4;
+		this.qfp = 4.0;
+		this.c = 0.3;
+		if (this.method==5) {
+			this.initialFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
+		}
 		this.currentFrameSize = this.initialFrameSize;
 		this.tags.clear();
 		this.frame.clear();
@@ -236,19 +500,37 @@ public class Simulator implements Runnable{
 	 * Calculate the next frame size
 	 * @return Next frame size based on Schoute formula
 	 */
-	protected int schoute() {
-		double c = 2.59;
-		double frameSize = c * this.col;
+	protected int schoute(int col) {
+		double c = 2.39;
+		double frameSize = c * col;
 		return ((int)Math.round(frameSize));
 	}
 	
 	/**
-	 * Calculate the next frame size
-	 * @return Next frame size based on EomLee formula
+	 * Calculate the next frame size based on eom-lee iterative algorithm
+	 * @param collisions Number of collisions slots
+	 * @param success Number of success slots
+	 * @param e Error
+	 * @param L QValue
+	 * @return Best Frame Size
 	 */
-	protected int eomlee() {
+	protected int eomlee(int collisions, int success, double e, int L) {
 		//TODO Implementar Eom-Lee
-		return (this.col*2);
+		double bprox;
+		double yprox;
+		double temp;
+		double backlog;
+		double y1 = 2;
+		
+		do {
+	        bprox = L/((y1*(double)collisions)+(double)success);
+	        yprox = (1.0-Math.exp((-1.0)/bprox))/(bprox*(1.0-(1.0+ 1.0/bprox)*Math.exp((-1.0)/bprox)));
+	        backlog = yprox*collisions;
+	        temp = y1;
+	        y1 = yprox;
+	    } while (Math.abs(y1-temp)>e);
+		
+		return ((int)Math.round(backlog));
 	}
 	
 	/**
@@ -319,13 +601,13 @@ public class Simulator implements Runnable{
 		}
 		else {
 			if (this.method==SimulatorConstants.SCHOUTE) {
-				this.currentFrameSize = this.schoute();
+				this.currentFrameSize = this.schoute(this.col);
 			}
 			else if (this.method==SimulatorConstants.LOWER) {
 				this.currentFrameSize = this.col*2;
 			}
 			else if (this.method==SimulatorConstants.EOMLEE) {
-				this.currentFrameSize = this.eomlee();
+				this.currentFrameSize = this.eomlee(this.col, this.suc, 0.001, this.currentFrameSize);
 			}
 			else {
 				this.currentFrameSize = this.col*2;
@@ -346,6 +628,7 @@ public class Simulator implements Runnable{
 		do {
 			this.initCurrentFrame();
 			this.sendQuery();
+			this.iCounter++;
 			this.prepareSlots();
 			this.identifyTags();
 			this.finalizeFrame();
@@ -397,22 +680,45 @@ public class Simulator implements Runnable{
 	/**
 	 * Start the DFSA procedure
 	 */
-	public void startStandardDFSA() {
+	public void startDFSA() {
+		//TODO Colocar contagem de instruções do comando sendQuery no trace.
+		StopWatch timer = new StopWatch();
+		timer.start();
+		//*********** BEGIN DFSA********************
 		for (this.numberOfTags=this.minTags; this.numberOfTags<=this.maxTags; this.numberOfTags = this.numberOfTags+ this.stepTags) {
 			for (int i=1; i<=this.iterations; i++) {
 				this.initData();
-				this.standardDfsa();
+				if (this.method<4) {
+					this.standardDfsa();
+				} 
+				else if (this.method==5) {
+					this.startQ();
+				}
+				else if (this.method==4) {
+					
+				}
 				statsTotal.addValue(this.totalSlots);
-				statsSef.addValue((this.numberOfTags/(float)this.totalSlots)); 
+				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
+				statsInst.addValue(this.iCounter);
 				//this.writeOutputToFile();
 			}
 			this.writeStatsToFile();
 		}
-		
+		//****************** END DFSA ****************
+		timer.stop();
+		String msg = "[" + String.valueOf(this.method) + "] " + "Execution time: " + String.valueOf(timer.getTime()/1000) + " seconds";
+ 		this.writeToFile(msg, "stats.txt");
+		//System.out.println("Tempo de execução: " + timer.getTime()/1000 + " segundos");
+		Runtime runtime = Runtime.getRuntime();
+	    long memory = runtime.totalMemory() - runtime.freeMemory();
+	    this.writeToFile("Used memory :" + bytesToMegabytes(memory) + " Mbytes","stats.txt");
+	    this.writeToFile("Identified tags :" + (this.numberOfTags-this.stepTags),"stats.txt");
+	    this.writeToFile("Non identified tags :" + this.tags.size(),"stats.txt");
+	    this.writeToFile("--------------------------", "stats.txt");
 	}
 	
 	/**
-	 * Write Sef Values to file
+	 * Write Sef, total used slots and instructions counter Values to file
 	 */
 	
 	protected void writeOutputToFile() {
@@ -460,6 +766,7 @@ public class Simulator implements Runnable{
 	protected void writeStatsToFile() {
 		File sef = new File(this.statsSefFile);
 		File total = new File(this.statsTotalFile);
+		File counter = new File(this.statsInstFile + "." + SimulatorConstants.getName(this.method));
 		if (!sef.exists()) {
 			try {
 				sef.createNewFile();
@@ -474,28 +781,42 @@ public class Simulator implements Runnable{
 				e.printStackTrace();
 			}
 		}
+		if (!counter.exists()) {
+			try {
+				counter.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		FileWriter fwriter = null;
 		FileWriter fwriterTotal = null;
+		FileWriter fwriterCounter = null;
 		try {
 			fwriter = new FileWriter(sef,true);
 			fwriterTotal = new FileWriter(total,true);
+			fwriterCounter = new FileWriter(counter,true);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		PrintWriter out = new PrintWriter(fwriter,true);
 		PrintWriter outTotal = new PrintWriter(fwriterTotal,true);
-		double[] ciSef = this.confidenceInterval(statsSef.getMean(), statsSef.getStandardDeviation(), this.getP());
-		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP());
-		String linhaSef = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsSef.getMean()) + " " + ciSef[0] + " " + ciSef[1]);
-		String linhaTotal = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsTotal.getMean()) + " " + ciTotal[0] + " " + ciTotal[1]);
-		out.println(linhaSef);
-		outTotal.println(linhaTotal);
-		
+		PrintWriter outCounter = new PrintWriter(fwriterCounter,true);
+		double[] ciSef = this.confidenceInterval(statsSef.getMean(), statsSef.getStandardDeviation(), this.getP(this.confidenceLevel));
+		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP(this.confidenceLevel));
+		double[] ciCounter = this.confidenceInterval(statsInst.getMean(), statsInst.getStandardDeviation(), this.getP(this.confidenceLevel));
+		//String linhaSef = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsSef.getMean()) + " " + ciSef[0] + " " + ciSef[1]);
+		//String linhaTotal = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsTotal.getMean()) + " " + ciTotal[0] + " " + ciTotal[1]);
+		//String linhaCounter = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsInst.getMean()) + " " + ciCounter[0] + " " + ciCounter[1]);
+		out.printf(Locale.US,"%d %.4f %.4f %.4f\n", this.numberOfTags,this.statsSef.getMean(), ciSef[0], ciSef[1]);
+		outTotal.printf(Locale.US,"%d %.0f %.0f %.0f\n", this.numberOfTags,this.statsTotal.getMean(), ciTotal[0], ciTotal[1]);
+		outCounter.printf(Locale.US,"%d %.2f %.2f %.2f\n", this.numberOfTags,this.statsInst.getMean(), ciCounter[0], ciCounter[1]);
 		out.close();
 		outTotal.close();
+		outCounter.close();
 		try {
 			fwriter.close();
 			fwriterTotal.close();
+			fwriterCounter.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -522,9 +843,9 @@ public class Simulator implements Runnable{
 	 * Calculates the Confidence Level constant
 	 * @return Confidence Level constant
 	 */
-	public double getP() { 
+	public double getP(double confidenceLevel) { 
 		NormalDistribution n = new NormalDistribution();
-		double value = 100-this.confidenceLevel;
+		double value = 100-confidenceLevel;
 		return Math.abs((n.inverseCumulativeProbability(value/200)));
 	}
 	
@@ -558,21 +879,6 @@ public class Simulator implements Runnable{
 		}
 	}
 	
-	@Override
-	public void run() {
-		StopWatch timer = new StopWatch();
-		timer.start();
-		this.startStandardDFSA();
-		timer.stop();
-		String msg = "[" + String.valueOf(this.method) + "] " + "Execution time: " + String.valueOf(timer.getTime()/1000) + " seconds";
- 		this.writeToFile(msg, "stats.txt");
-		//System.out.println("Tempo de execução: " + timer.getTime()/1000 + " segundos");
-		Runtime runtime = Runtime.getRuntime();
-	    long memory = runtime.totalMemory() - runtime.freeMemory();
-	    this.writeToFile("Used memory :" + bytesToMegabytes(memory) + " Mbytes","stats.txt");
-	    this.writeToFile("--------------------------", "stats.txt");
-	}
-	
 	protected static final long MEGABYTE = 1024L * 1024L;
 	
 	/**
@@ -584,8 +890,66 @@ public class Simulator implements Runnable{
 	    return bytes / MEGABYTE;
 	}
 	
-	//TODO Implementar Algoritmo Q
+	/**
+	 * Start Q Algorithm (C1G2)
+	 */
+	protected void startQ() {
+		do {
+			this.initCurrentFrame();
+			this.sendQuery();
+			this.iCounter++;
+			this.prepareSlots();
+			this.identifyTagsQ();
+			this.finalizeFrameQ();
+		} while (end==false);
+	}
+	
+	/**
+	 * Identify tags in Q Algorithm
+	 */
+	protected void identifyTagsQ() {
+			if (frame.get(0).getSlotSize()>1) {
+				this.col++;
+			}
+			else if (frame.get(0).getSlotSize()==1) {
+				this.suc++;
+				this.removeTag(frame.get(0).getTags().get(0).getCode());
+			}
+			else if (frame.get(0).getSlotSize()==0) {
+				this.idl++;
+			}
+	}
+	
+	/**
+	 * Ends frame for Q Algorithm
+	 */
+	protected void finalizeFrameQ() {
+		this.totalSlots++;
+		if (this.qfp<1) {
+			this.end = true;
+		}
+		else {
+			if (this.col==1) {
+				this.qfp = this.qfp + this.c;
+			}
+			else if (this.idl==1) {
+				this.qfp = this.qfp - this.c;
+			}
+			this.qValue = (int)Math.round(this.qfp);
+			this.currentFrameSize = (int)Math.round(Math.pow(this.qValue, 2));
+			this.col = 0;
+			this.idl = 0;
+			this.suc = 0;
+			this.frames++;
+			this.frame.clear();
+		}
+	}
 	
 	//TODO Implementar NEDFSA
+	
+	@Override
+	public void run() {
+			this.startDFSA();
+	}
 	
 }
