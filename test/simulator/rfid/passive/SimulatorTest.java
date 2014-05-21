@@ -1,6 +1,9 @@
 package simulator.rfid.passive;
 
 import static org.junit.Assert.*;
+
+import java.io.File;
+
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -14,11 +17,9 @@ public class SimulatorTest extends TestCase{
 	 */
 	public void testSimulator() {
 		
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, "sef.schoute.128.5000.txt", "total.schoute.128.5000.txt",128,200,90,5000,100);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		assertEquals(100, s.getNumberOfTags());
 		assertEquals(1, s.getMethod());
-		assertEquals("sef.schoute.128.5000.txt.stats", s.getStatsSefFile());
-		assertEquals("total.schoute.128.5000.txt.stats", s.getStatsTotalFile());
 		assertEquals(128, s.getInitialFrameSize());
 		assertEquals(200, s.getIterations());
 		assertEquals(90, s.getConfidenceLevel(),10);
@@ -41,7 +42,7 @@ public class SimulatorTest extends TestCase{
 	@Test
 	public void testSchoute() {
 		
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, "sef.schoute.128.5000.txt", "total.schoute.128.5000.txt",128,200,90,5000,100);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		assertEquals(7,s.schoute(3));
 		assertEquals(5,s.schoute(2));
 		assertEquals(10,s.schoute(4));
@@ -50,14 +51,14 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testInitCurrentFrame() {
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, "sef.schoute.128.5000.txt", "total.schoute.128.5000.txt",128,200,90,5000,100);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		s.initCurrentFrame();
 		assertEquals(s.getInitialFrameSize(), s.getFrame().size());
 	}
 	
 	@Test
 	public void testSendQuery() {
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, "sef.schoute.128.5000.txt", "total.schoute.128.5000.txt",128,200,90,5000,100);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		s.initCurrentFrame();
 		s.sendQuery();
 		for (int i=0; i<s.getTags().size(); i++) {
@@ -69,16 +70,17 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testEomLee() {
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, "sef.schoute.128.5000.txt", "total.schoute.128.5000.txt",128,200,90,5000,100);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		assertEquals(7, s.eomlee(3, 20, 0.001, 32));
 		assertEquals(194, s.eomlee(70, 30, 0.001, 128));
 	}
 	
 	@Test
-	public void testMethods() {
-		SimulatorConstants.startHashTable();
-		assertEquals("EOMLEE", SimulatorConstants.getName(3));
+	public void testMiniSet() {
+		Simulator s = new Simulator(3,SimulatorConstants.SCHOUTE, 3,1000,90,3,1,true);
+		s.startDFSA();
+		File f = new File(s.statsSefFile);
+		assertTrue(f.exists());
 	}
-	
 	
 }

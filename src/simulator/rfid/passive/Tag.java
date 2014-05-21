@@ -56,8 +56,8 @@ public class Tag {
 	
 	public void setRng16(int up) { 
 		if (up!=0) {
-			this.rng16 = generator.nextInt(up);
-			//this.rng16 = randomData.nextSecureInt(0, up);
+			//this.rng16 = generator.nextInt(up);
+			this.rng16 = randomData.nextSecureInt(0, up);
 		}
 		else this.rng16 = 0;
 	}
