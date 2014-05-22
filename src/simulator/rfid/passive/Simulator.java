@@ -157,6 +157,8 @@ public class Simulator implements Runnable{
 	 */
 	protected int qValue;
 	
+	protected int initialQValue;
+	
 	/**
 	 * Float value of qValue
 	 */
@@ -175,6 +177,10 @@ public class Simulator implements Runnable{
 	protected boolean debug;
 	
 	private Hashtable<Integer, String> methods = new Hashtable<Integer,String>();
+	
+	private Hashtable<Integer, PerformanceData> statsDataSef = new Hashtable<Integer,PerformanceData>();
+	private Hashtable<Integer, PerformanceData> statsDataTotal = new Hashtable<Integer,PerformanceData>();
+	private Hashtable<Integer, PerformanceData> statsDataFrames = new Hashtable<Integer,PerformanceData>();
 	
 	
 	/**
@@ -235,7 +241,7 @@ public class Simulator implements Runnable{
 		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
 		if (this.method==5) {
-			this.initialFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
+			this.currentFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
 		} 
 		this.iCounter = 0;
 		this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
@@ -483,13 +489,15 @@ public class Simulator implements Runnable{
 		this.totalSlots = 0;
 		this.iCounter = 0;
 		this.end = false;
-		this.qValue = 4;
-		this.qfp = 4.0;
+		this.qValue = this.initialFrameSize;
+		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
 		if (this.method==5) {
-			this.initialFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
+			this.currentFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
 		}
-		this.currentFrameSize = this.initialFrameSize;
+		else {
+			this.currentFrameSize = this.initialFrameSize;
+		}
 		this.tags.clear();
 		this.frame.clear();
 		this.initTagList();
@@ -564,7 +572,7 @@ public class Simulator implements Runnable{
 	 */
 	protected void sendQuery() {
 		for (int i=0; i<this.tags.size(); i++) {
-			tags.get(i).setRng16(this.currentFrameSize-1);
+			tags.get(i).setRng16(this.currentFrameSize);
 		}
 	}
 	
@@ -716,12 +724,12 @@ public class Simulator implements Runnable{
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
 				statsInst.addValue(this.iCounter);
-				this.writeOutputToFile();
+				//this.writeOutputToFile();
 			}
+			this.setupStatsHashTable();
 			if (this.debug) {
 				this.writeStatsToFile();
 			}
-			
 		}
 		//****************** END DFSA ****************
 		timer.stop();
@@ -833,6 +841,7 @@ public class Simulator implements Runnable{
 		double[] ciSef = this.confidenceInterval(statsSef.getMean(), statsSef.getStandardDeviation(), this.getP(this.confidenceLevel));
 		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP(this.confidenceLevel));
 		double[] ciCounter = this.confidenceInterval(statsInst.getMean(), statsInst.getStandardDeviation(), this.getP(this.confidenceLevel));
+		this.statsDataSef.put(this.numberOfTags, new PerformanceData(this.statsSef.getMean(),ciSef[0],ciSef[1]));
 		//String linhaSef = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsSef.getMean()) + " " + ciSef[0] + " " + ciSef[1]);
 		//String linhaTotal = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsTotal.getMean()) + " " + ciTotal[0] + " " + ciTotal[1]);
 		//String linhaCounter = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsInst.getMean()) + " " + ciCounter[0] + " " + ciCounter[1]);
@@ -956,6 +965,7 @@ public class Simulator implements Runnable{
 		this.totalSlots++;
 		if (this.qfp<1) {
 			this.end = true;
+			this.frame.clear();
 		}
 		else {
 			if (this.col==1) {
@@ -975,50 +985,53 @@ public class Simulator implements Runnable{
 	}
 	
 	/**
-	 * 
-	 * @param v 1 - Mean, 2- Lower CI, 3- Upper CI
-	 * @return Stat
+	 * Add statistics data to hashtable
 	 */
-	public double getSefStats(int v) {
+	private void setupStatsHashTable() {
 		double[] ciSef = this.confidenceInterval(statsSef.getMean(), statsSef.getStandardDeviation(), this.getP(this.confidenceLevel));
-		if (v==1) {
-			return (statsSef.getMean());
-		}
-		else if (v==2) {
-			return ciSef[0];
-		}
-		else if (v==3) {
-			return ciSef[1];
-		}
-		else return 0;
-	}
-	
-	public double getTotalStats(int v) {
 		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP(this.confidenceLevel));
-		if (v==1) {
-			return (statsTotal.getMean());
-		}
-		else if (v==2) {
-			return ciTotal[0];
-		}
-		else if (v==3) {
-			return ciTotal[1];
-		}
-		else return 0;
+		double[] ciCounter = this.confidenceInterval(statsInst.getMean(), statsInst.getStandardDeviation(), this.getP(this.confidenceLevel));
+		this.statsDataSef.put(this.numberOfTags, new PerformanceData(this.statsSef.getMean(),ciSef[0],ciSef[1]));
+		this.statsDataTotal.put(this.numberOfTags, new PerformanceData(this.statsTotal.getMean(),ciTotal[0],ciTotal[1]));
+		this.statsDataFrames.put(this.numberOfTags, new PerformanceData(this.statsInst.getMean(),ciCounter[0],ciCounter[1]));
 	}
 	
-	public double getFrameStats(int v) {
-		double[] ciCounter = this.confidenceInterval(statsInst.getMean(), statsInst.getStandardDeviation(), this.getP(this.confidenceLevel));
-		if (v==1) {
-			return (statsSef.getMean());
-		}
-		else if (v==2) {
-			return ciCounter[0];
-		}
-		else if (v==3) {
-			return ciCounter[1];
-		}
-		else return 0;
+	/**
+	 * @return the statsData
+	 */
+	public Hashtable<Integer, PerformanceData> getStatsDataSef() {
+		return statsDataSef;
+	}
+	
+	/**
+	 * @return the statsDataTotal
+	 */
+	public Hashtable<Integer, PerformanceData> getStatsDataTotal() {
+		return statsDataTotal;
+	}
+
+
+	/**
+	 * @return the statsDataFrames
+	 */
+	public Hashtable<Integer, PerformanceData> getStatsDataFrames() {
+		return statsDataFrames;
+	}
+	
+	//TODO Implementar Algoritmo de estimação
+	
+	/**
+	 * Start Estimation Algorithm (CUI)
+	 */
+	protected void startEstimation() {
+		do {
+			this.initCurrentFrame();
+			this.sendQuery();
+			this.iCounter++;
+			this.prepareSlots();
+			this.identifyTagsQ();
+			this.finalizeFrameQ();
+		} while (end==false);
 	}
 	
 	//TODO Implementar NEDFSA

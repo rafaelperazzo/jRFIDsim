@@ -47,6 +47,7 @@ public class SimulatorTest extends TestCase{
 		assertEquals(5,s.schoute(2));
 		assertEquals(10,s.schoute(4));
 		assertEquals(12,s.schoute(5));
+		assertEquals(128,s.initialFrameSize);
 	}
 	
 	@Test
@@ -54,6 +55,7 @@ public class SimulatorTest extends TestCase{
 		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		s.initCurrentFrame();
 		assertEquals(s.getInitialFrameSize(), s.getFrame().size());
+		assertEquals(128,s.initialFrameSize);
 	}
 	
 	@Test
@@ -66,6 +68,7 @@ public class SimulatorTest extends TestCase{
 			assertTrue(isTrue);
 			assertNotEquals(-1, s.getTags().get(i).getRng16());
 		}
+		assertEquals(128,s.initialFrameSize);
 	}
 	
 	@Test
@@ -73,14 +76,20 @@ public class SimulatorTest extends TestCase{
 		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
 		assertEquals(7, s.eomlee(3, 20, 0.001, 32));
 		assertEquals(194, s.eomlee(70, 30, 0.001, 128));
+		assertEquals(128,s.initialFrameSize);
 	}
 	
 	@Test
 	public void testMiniSet() {
-		Simulator s = new Simulator(3,SimulatorConstants.SCHOUTE, 3,1000,90,3,1,true);
+		Simulator s = new Simulator(3,SimulatorConstants.C1G2, 3,100,90,3,1,false);
 		s.startDFSA();
 		File f = new File(s.statsSefFile);
-		assertTrue(f.exists());
+		assertTrue(!f.exists());
+		assertEquals(3,s.initialFrameSize);
+		assertTrue((s.getStatsDataSef().size()==1));
+		assertTrue((s.getStatsDataTotal().size()==1));
+		assertTrue((s.getStatsDataFrames().size()==1));
+		assertTrue((s.frame.size()==0));
 	}
 	
 }
