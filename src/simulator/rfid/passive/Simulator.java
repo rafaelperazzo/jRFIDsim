@@ -241,7 +241,7 @@ public class Simulator implements Runnable{
 		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
 		if (this.method==5) {
-			this.currentFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 		} 
 		this.iCounter = 0;
 		this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
@@ -493,7 +493,7 @@ public class Simulator implements Runnable{
 		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
 		if (this.method==5) {
-			this.currentFrameSize = (int)Math.round(Math.pow(this.qfp, 2));
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 		}
 		else {
 			this.currentFrameSize = this.initialFrameSize;
@@ -975,7 +975,7 @@ public class Simulator implements Runnable{
 				this.qfp = this.qfp - this.c;
 			}
 			this.qValue = (int)Math.round(this.qfp);
-			this.currentFrameSize = (int)Math.round(Math.pow(this.qValue, 2));
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 			this.col = 0;
 			this.idl = 0;
 			this.suc = 0;
@@ -1023,15 +1023,77 @@ public class Simulator implements Runnable{
 	/**
 	 * Start Estimation Algorithm (CUI) based on power of 2
 	 */
-	protected void startEstimation() {
-		do {
+	protected int startEstimation() {
+		this.c = 1;
+		boolean t1=false,t2=false,t3=false;
+		do {	
+			t1 = this.isSlotSizeGood();
+			if (t1) { //Yes, Good frame size.
+				t2 = this.isSlotSizeGood();//Confirm (2nd time)
+				if (t2) {
+					t3 = this.isSlotSizeGood(); //Confirm (3rd time)
+				}
+				
+			}	
+		} while (!(t1&&t2&t3));
+		return (this.qValue);
+	}
+	
+	protected boolean isSlotSizeGood() {
+		int colSlot = 0;
+		int idlSlot = 0;
+		
+		for (int i=0; i<3; i++) {
 			this.initCurrentFrame();
 			this.sendQuery();
 			this.iCounter++;
 			this.prepareSlots();
-			this.identifyTagsQ();
-			this.finalizeFrameQ();
-		} while (end==false);
+			//Check the type of slot (collision, success or idle)
+			if (this.checkSlot()==0) {
+				colSlot++;
+			}
+			else if (this.checkSlot()==1) {
+			}
+			else {
+				idlSlot++;
+			}
+			this.goToNextEstimationFrame();
+		}
+		if ((colSlot==3)||(idlSlot==3)) {
+			if (colSlot==3) {
+				this.qfp = this.qfp + this.c;
+			}
+			if (idlSlot==3) {
+				this.qfp = this.qfp - this.c;
+			}
+			this.qValue = (int)Math.round(this.qfp);
+			this.currentFrameSize = (int)Math.round(Math.pow(2, this.qValue));
+			return false;
+		}
+		else {
+			return (true);
+		}
+	}
+	
+	protected int checkSlot() {
+		if (frame.get(0).getSlotSize()>1) { //COLLISION SLOTS
+			return 0;
+		}
+		else if (frame.get(0).getSlotSize()==1) { //SUCCESS SLOT
+			return 1;
+		}
+		else { //IDLE SLOT
+			return 2;
+		}
+	}
+	
+	protected void goToNextEstimationFrame() {
+		this.totalSlots++;
+		this.col = 0;
+		this.idl = 0;
+		this.suc = 0;
+		this.frames++;
+		this.frame.clear();
 	}
 	
 	//TODO Implementar NEDFSA

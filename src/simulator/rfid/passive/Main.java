@@ -11,6 +11,15 @@ public class Main {
 		
 		SimulatorConstants.startHashTable();
 		
+		Simulator s = new Simulator(3000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
+		
+		/*boolean t1,t2;
+		s.startEstimation();
+		System.out.println(s.c);
+		System.out.println(s.qValue);
+		System.out.println(s.currentFrameSize);
+		System.out.println(s.totalSlots);*/
+		
 		//SCHOUTE METHOD
 		//Thread schoute = new Thread(new Simulator(100,SimulatorConstants.SCHOUTE, 128,100,90,1000,100,true));
 		//schoute.start(); 

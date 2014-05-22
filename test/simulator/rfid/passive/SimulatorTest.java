@@ -92,4 +92,25 @@ public class SimulatorTest extends TestCase{
 		assertTrue((s.frame.size()==0));
 	}
 	
+	@Test
+	public void testIsSlotGoodSize() {
+		
+		Simulator s = new Simulator(1000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
+		assertEquals(4,s.qValue);
+		assertEquals(16,s.currentFrameSize);
+		@SuppressWarnings("unused")
+		int cont =0;
+		for (int i=0; i<100; i++) {
+			boolean t1,t2;
+			t1 = s.isSlotSizeGood();
+			t2 = s.isSlotSizeGood();
+			if (t1 && t2) cont++;
+		}
+		//assertTrue(cont>50);
+		System.out.println(s.qValue);
+	}
+	
+	
+	//TODO Colocar vários testes diferentes
+	
 }
