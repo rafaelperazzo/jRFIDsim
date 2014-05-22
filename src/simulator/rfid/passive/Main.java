@@ -11,7 +11,7 @@ public class Main {
 		
 		SimulatorConstants.startHashTable();
 		
-		Simulator s = new Simulator(3000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
+		//Simulator s = new Simulator(3000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
 		
 		/*boolean t1,t2;
 		s.startEstimation();
@@ -21,8 +21,8 @@ public class Main {
 		System.out.println(s.totalSlots);*/
 		
 		//SCHOUTE METHOD
-		//Thread schoute = new Thread(new Simulator(100,SimulatorConstants.SCHOUTE, 128,100,90,1000,100,true));
-		//schoute.start(); 
+		Thread schoute = new Thread(new Simulator(100,SimulatorConstants.SCHOUTE, 128,100,90,200,10,true));
+		schoute.start(); 
 		
 		//LOWER BOUND METHOD
 		//Thread lower = new Thread(new Simulator(100,SimulatorConstants.LOWER, 128,100,90,1000,100,true));
@@ -33,8 +33,8 @@ public class Main {
 		//eomlee.start();
 		
 		//C1G2 METHOD
-		Thread c1g2 = new Thread(new Simulator(100,SimulatorConstants.C1G2, 4,100,90,1000,100,true));
-		c1g2.start();
+		//Thread c1g2 = new Thread(new Simulator(500,SimulatorConstants.MOTA, 4,1000,90,500,100,true));
+		//c1g2.start();
 		
 	}
 

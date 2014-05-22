@@ -240,7 +240,7 @@ public class Simulator implements Runnable{
 		this.qValue = this.initialFrameSize;
 		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
-		if (this.method==5) {
+		if ((this.method==5)||(this.method==4)) {
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 		} 
 		this.iCounter = 0;
@@ -492,7 +492,7 @@ public class Simulator implements Runnable{
 		this.qValue = this.initialFrameSize;
 		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
-		if (this.method==5) {
+		if ((this.method==5)||(this.method==4)) {
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 		}
 		else {
@@ -719,7 +719,9 @@ public class Simulator implements Runnable{
 					this.startQ();
 				}
 				else if (this.method==4) {
-					
+					this.startEstimation();
+					this.setC(0.3);
+					this.startQ();
 				}
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
@@ -740,8 +742,8 @@ public class Simulator implements Runnable{
 			Runtime runtime = Runtime.getRuntime();
 		    long memory = runtime.totalMemory() - runtime.freeMemory();
 		    this.writeToFile("Used memory :" + bytesToMegabytes(memory) + " Mbytes","stats.txt");
-		    this.writeToFile("Identified tags :" + (this.numberOfTags-this.stepTags),"stats.txt");
-		    this.writeToFile("Non identified tags :" + this.tags.size(),"stats.txt");
+		    //this.writeToFile("Identified tags :" + (this.numberOfTags-this.stepTags),"stats.txt");
+		    //this.writeToFile("Non identified tags :" + this.tags.size(),"stats.txt");
 		    this.writeToFile("Number of iterations: " + this.iterations, "stats.txt");
 		    this.writeToFile("Initial number of tags: " + this.minTags, "stats.txt");
 		    this.writeToFile("Final number of tags: " + this.maxTags, "stats.txt");
@@ -1025,17 +1027,13 @@ public class Simulator implements Runnable{
 	 */
 	protected int startEstimation() {
 		this.c = 1;
-		boolean t1=false,t2=false,t3=false;
+		boolean t1=false,t2=false;
 		do {	
 			t1 = this.isSlotSizeGood();
 			if (t1) { //Yes, Good frame size.
-				t2 = this.isSlotSizeGood();//Confirm (2nd time)
-				if (t2) {
-					t3 = this.isSlotSizeGood(); //Confirm (3rd time)
-				}
-				
+				t2 = this.isSlotSizeGood();//Confirm (2nd time)	
 			}	
-		} while (!(t1&&t2&t3));
+		} while (!(t1&&t2));
 		return (this.qValue);
 	}
 	
@@ -1089,9 +1087,6 @@ public class Simulator implements Runnable{
 	
 	protected void goToNextEstimationFrame() {
 		this.totalSlots++;
-		this.col = 0;
-		this.idl = 0;
-		this.suc = 0;
 		this.frames++;
 		this.frame.clear();
 	}
