@@ -1021,7 +1021,7 @@ public class Simulator implements Runnable{
 	//TODO Implementar Algoritmo de estimação
 	
 	/**
-	 * Start Estimation Algorithm (CUI)
+	 * Start Estimation Algorithm (CUI) based on power of 2
 	 */
 	protected void startEstimation() {
 		do {
