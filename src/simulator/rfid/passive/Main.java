@@ -1,5 +1,7 @@
 package simulator.rfid.passive;
 
+import java.io.File;
+
 /**
  * 
  * @author Rafael Perazzo Barbosa Mota
@@ -9,32 +11,40 @@ public class Main {
 
 	public static void main(String[] args) {
 		
+		/*
+		 * java -jar <initialNumberOfTags> <finalNumberOfTags> <step> <confidenceLevel> <numberOfIterations> <method> <deleteStatusFile> <initialFrameSize>
+		 * 
+		 * method: 1 - Schoute; 2-LOWER; 3-Eom-Lee; 4-Mota; 5-C1G2
+		 * deleteStatusFile: 1- Yes; 0-No
+		 */
+		
 		SimulatorConstants.startHashTable();
 		
-		//Simulator s = new Simulator(3000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
-		
-		/*boolean t1,t2;
-		s.startEstimation();
-		System.out.println(s.c);
-		System.out.println(s.qValue);
-		System.out.println(s.currentFrameSize);
-		System.out.println(s.totalSlots);*/
-		
-		//SCHOUTE METHOD
-		Thread schoute = new Thread(new Simulator(100,SimulatorConstants.SCHOUTE, 128,100,90,200,10,true));
-		schoute.start(); 
-		
-		//LOWER BOUND METHOD
-		//Thread lower = new Thread(new Simulator(100,SimulatorConstants.LOWER, 128,100,90,1000,100,true));
-		//lower.start();
-		
-		//EOM-LEE METHOD
-		//Thread eomlee = new Thread(new Simulator(100,SimulatorConstants.EOMLEE, 128,100,90,1000,100,true));
-		//eomlee.start();
-		
-		//C1G2 METHOD
-		//Thread c1g2 = new Thread(new Simulator(500,SimulatorConstants.MOTA, 4,1000,90,500,100,true));
-		//c1g2.start();
+		int begin=100,end=1000,steps=100,ci=90, iterations=100;
+		int method=1, deleteStats=1, initialFrameSize=128;
+		if (args.length==8) {
+			begin=Integer.parseInt(args[0]);
+			end=Integer.parseInt(args[1]);
+			steps=Integer.parseInt(args[2]);
+			ci=Integer.parseInt(args[3]);
+			iterations=Integer.parseInt(args[4]);
+			method=Integer.parseInt(args[5]);
+			deleteStats=Integer.parseInt(args[6]);
+			initialFrameSize=Integer.parseInt(args[7]);
+			if (deleteStats==1) {
+				File f = new File("stats.txt");
+				if (f.exists()) f.delete();
+			}
+			Thread sim = new Thread(new Simulator(begin,method, initialFrameSize,iterations,ci,end,steps,true));
+			sim.start(); 
+		}
+		else {
+			System.out.println("Usage: ");
+			System.out.println("java -jar <initialNumberOfTags> <finalNumberOfTags> <step> <confidenceLevel> <numberOfIterations> <method> <deleteStatusFile> <initialFrameSize>");
+			System.out.println("method: 1 - Schoute; 2-LOWER; 3-Eom-Lee; 4-Mota; 5-C1G2");
+			System.out.println("deleteStatusFile: 1- Yes; 0-No");
+			System.out.println("initialFrameSize: 128,64,256(for non Q-based) or 4, 5, 6 (for Q-based)");
+		}
 		
 	}
 

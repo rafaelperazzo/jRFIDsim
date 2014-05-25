@@ -176,12 +176,13 @@ public class Simulator implements Runnable{
 	
 	protected boolean debug;
 	
-	private Hashtable<Integer, String> methods = new Hashtable<Integer,String>();
+	protected Hashtable<Integer, String> methods = new Hashtable<Integer,String>();
 	
-	private Hashtable<Integer, PerformanceData> statsDataSef = new Hashtable<Integer,PerformanceData>();
-	private Hashtable<Integer, PerformanceData> statsDataTotal = new Hashtable<Integer,PerformanceData>();
-	private Hashtable<Integer, PerformanceData> statsDataFrames = new Hashtable<Integer,PerformanceData>();
+	protected Hashtable<Integer, PerformanceData> statsDataSef = new Hashtable<Integer,PerformanceData>();
+	protected Hashtable<Integer, PerformanceData> statsDataTotal = new Hashtable<Integer,PerformanceData>();
+	protected Hashtable<Integer, PerformanceData> statsDataFrames = new Hashtable<Integer,PerformanceData>();
 	
+	protected int nedfsaSlotsInCollision = 0;
 	
 	/**
 	 * Default Constructor
@@ -254,8 +255,6 @@ public class Simulator implements Runnable{
 		f = new File(this.statsTotalFile);
 		if (f.exists()) f.delete();
 		f = new File(this.statsInstFile);
-		if (f.exists()) f.delete();
-		f = new File("stats.txt");
 		if (f.exists()) f.delete();
 		statsTotal.clear();
 		statsSef.clear();
@@ -608,17 +607,30 @@ public class Simulator implements Runnable{
 	 */
 	protected void identifyTags() {
 		for (int i=0; i<this.currentFrameSize; i++) {
-			if (frame.get(i).getSlotSize()>1) {
-				this.col++;
+			if (frame.get(i).getSlotSize()>1) { //COLLISION SLOT
+				if (this.method==SimulatorConstants.MOTA) {
+					this.identifyTagsInCollision(frame.get(i).getTags());
+				}
+				else {
+					this.col++;
+				}
 			}
-			else if (frame.get(i).getSlotSize()==1) {
+			else if (frame.get(i).getSlotSize()==1) { //SUCCESS SLOT
 				this.suc++;
 				this.removeTag(frame.get(i).getTags().get(0).getCode());
 			}
-			else if (frame.get(i).getSlotSize()==0) {
+			else if (frame.get(i).getSlotSize()==0) { //IDLE SLOT
 				this.idl++;
 			}
 		}
+	}
+	
+	protected void identifyTagsInCollision(ArrayList<Tag> tagsInCollision) {
+		Simulator colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.LOWER, 2,1,90,3,1,false);
+		colHandler.setTags(tagsInCollision);
+		colHandler.standardDfsa();
+		this.totalSlots = this.totalSlots + colHandler.totalSlots;
+		if (colHandler.tags.size()>0) System.out.println("ERRO!!");
 	}
 	
 	/**
@@ -720,13 +732,14 @@ public class Simulator implements Runnable{
 				if (this.method<4) {
 					this.standardDfsa();
 				} 
-				else if (this.method==5) {
+				else if (this.method==SimulatorConstants.C1G2) {
 					this.startQ();
 				}
-				else if (this.method==4) {
+				else if (this.method==SimulatorConstants.MOTA) {
 					this.startEstimation();
 					this.setC(0.3);
-					this.startQ();
+					this.standardDfsa();
+					//System.out.println(this.nedfsaSlotsInCollision);
 				}
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
@@ -1095,6 +1108,19 @@ public class Simulator implements Runnable{
 	}
 	
 	//TODO Implementar NEDFSA
+	
+	protected void startNEDFSA() {
+		do {
+			this.initCurrentFrame();
+			this.sendQuery();
+			this.iCounter++;
+			this.prepareSlots();
+			this.identifyTags();
+			this.finalizeFrame();
+		} while (end==false);
+	}
+	
+	
 	
 	@Override
 	public void run() {
