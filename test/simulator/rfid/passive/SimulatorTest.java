@@ -158,16 +158,17 @@ public class SimulatorTest extends TestCase{
 		
 	}
 	
+	//TODO Teste do confidence Interval
 	@Test
 	public void testConfidenceInterval() {
 		
 	}
 	
+	//TODO Teste do getP
 	@Test
 	public void testgetP() {
 		
 	}
 	
-	//TODO Colocar vários testes diferentes
 	
 }
