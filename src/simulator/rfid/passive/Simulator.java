@@ -280,6 +280,11 @@ public class Simulator implements Runnable{
 	}
 
 
+	public void setTags(ArrayList<Tag> tags) {
+		this.tags = tags;
+	}
+
+
 	/**
 	 * @return the c
 	 */
@@ -1019,8 +1024,6 @@ public class Simulator implements Runnable{
 	public Hashtable<Integer, PerformanceData> getStatsDataFrames() {
 		return statsDataFrames;
 	}
-	
-	//TODO Implementar Algoritmo de estimação
 	
 	/**
 	 * Start Estimation Algorithm (CUI) based on power of 2
