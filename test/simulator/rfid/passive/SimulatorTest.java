@@ -98,7 +98,6 @@ public class SimulatorTest extends TestCase{
 		Simulator s = new Simulator(1000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
 		assertEquals(4,s.qValue);
 		assertEquals(16,s.currentFrameSize);
-		@SuppressWarnings("unused")
 		int cont =0;
 		for (int i=0; i<100; i++) {
 			boolean t1,t2;
@@ -106,10 +105,68 @@ public class SimulatorTest extends TestCase{
 			t2 = s.isSlotSizeGood();
 			if (t1 && t2) cont++;
 		}
-		//assertTrue(cont>50);
-		System.out.println(s.qValue);
+		assertTrue(cont>50);
 	}
 	
+	@Test
+	public void testSchouteMethod() {
+		Simulator s = new Simulator(1000,SimulatorConstants.SCHOUTE, 128,50,90,2000,100,false);
+		s.startDFSA();
+		for (int i=1000; i<=2000; i=i+100) {
+			assertEquals(0.33, s.getStatsDataSef().get(i).getMean(),0.025);
+		}
+		
+	}
+	
+	@Test
+	public void testLowerMethod() {
+		Simulator s = new Simulator(1000,SimulatorConstants.LOWER, 128,50,90,2000,100,false);
+		s.startDFSA();
+		for (int i=1000; i<=2000; i=i+100) {
+			assertEquals(0.32, s.getStatsDataSef().get(i).getMean(),0.025);
+		}
+		
+	}
+	
+	@Test
+	public void testEOMMethod() {
+		Simulator s = new Simulator(1000,SimulatorConstants.EOMLEE, 128,50,90,2000,100,false);
+		s.startDFSA();
+		for (int i=1000; i<=2000; i=i+100) {
+			assertEquals(0.34, s.getStatsDataSef().get(i).getMean(),0.025);
+		}
+		
+	}
+	
+	@Test
+	public void testC1G2Method() {
+		Simulator s = new Simulator(100,SimulatorConstants.C1G2, 4,50,90,700,100,false);
+		s.startDFSA();
+		for (int i=100; i<=700; i=i+100) {
+			assertEquals(0.33, s.getStatsDataSef().get(i).getMean(),0.025);
+		}
+		
+	}
+	
+	@Test
+	public void testMOTAMethod() {
+		Simulator s = new Simulator(100,SimulatorConstants.MOTA, 4,50,90,2000,100,false);
+		s.startDFSA();
+		for (int i=1000; i<=2000; i=i+100) {
+			assertEquals(0.4, s.getStatsDataSef().get(i).getMean(),0.025);
+		}
+		
+	}
+	
+	@Test
+	public void testConfidenceInterval() {
+		
+	}
+	
+	@Test
+	public void testgetP() {
+		
+	}
 	
 	//TODO Colocar vários testes diferentes
 	

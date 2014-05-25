@@ -625,6 +625,10 @@ public class Simulator implements Runnable{
 		}
 	}
 	
+	/**
+	 * Identify collision tags
+	 * @param tagsInCollision Tags in collision
+	 */
 	protected void identifyTagsInCollision(ArrayList<Tag> tagsInCollision) {
 		Simulator colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.LOWER, 2,1,90,3,1,false);
 		colHandler.setTags(tagsInCollision);
@@ -739,7 +743,6 @@ public class Simulator implements Runnable{
 					this.startEstimation();
 					this.setC(0.3);
 					this.standardDfsa();
-					//System.out.println(this.nedfsaSlotsInCollision);
 				}
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
@@ -760,8 +763,6 @@ public class Simulator implements Runnable{
 			Runtime runtime = Runtime.getRuntime();
 		    long memory = runtime.totalMemory() - runtime.freeMemory();
 		    this.writeToFile("Used memory :" + bytesToMegabytes(memory) + " Mbytes","stats.txt");
-		    //this.writeToFile("Identified tags :" + (this.numberOfTags-this.stepTags),"stats.txt");
-		    //this.writeToFile("Non identified tags :" + this.tags.size(),"stats.txt");
 		    this.writeToFile("Number of iterations: " + this.iterations, "stats.txt");
 		    this.writeToFile("Initial number of tags: " + this.minTags, "stats.txt");
 		    this.writeToFile("Final number of tags: " + this.maxTags, "stats.txt");
@@ -862,9 +863,6 @@ public class Simulator implements Runnable{
 		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP(this.confidenceLevel));
 		double[] ciCounter = this.confidenceInterval(statsInst.getMean(), statsInst.getStandardDeviation(), this.getP(this.confidenceLevel));
 		this.statsDataSef.put(this.numberOfTags, new PerformanceData(this.statsSef.getMean(),ciSef[0],ciSef[1]));
-		//String linhaSef = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsSef.getMean()) + " " + ciSef[0] + " " + ciSef[1]);
-		//String linhaTotal = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsTotal.getMean()) + " " + ciTotal[0] + " " + ciTotal[1]);
-		//String linhaCounter = String.valueOf(this.numberOfTags + " " + String.valueOf(this.statsInst.getMean()) + " " + ciCounter[0] + " " + ciCounter[1]);
 		out.printf(Locale.US,"%d %.4f %.4f %.4f\n", this.numberOfTags,this.statsSef.getMean(), ciSef[0], ciSef[1]);
 		outTotal.printf(Locale.US,"%d %.0f %.0f %.0f\n", this.numberOfTags,this.statsTotal.getMean(), ciTotal[0], ciTotal[1]);
 		outCounter.printf(Locale.US,"%d %.2f %.2f %.2f\n", this.numberOfTags,this.statsInst.getMean(), ciCounter[0], ciCounter[1]);
@@ -1106,21 +1104,7 @@ public class Simulator implements Runnable{
 		this.frames++;
 		this.frame.clear();
 	}
-	
-	//TODO Implementar NEDFSA
-	
-	protected void startNEDFSA() {
-		do {
-			this.initCurrentFrame();
-			this.sendQuery();
-			this.iCounter++;
-			this.prepareSlots();
-			this.identifyTags();
-			this.finalizeFrame();
-		} while (end==false);
-	}
-	
-	
+
 	
 	@Override
 	public void run() {
