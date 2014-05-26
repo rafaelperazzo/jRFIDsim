@@ -174,14 +174,34 @@ public class Simulator implements Runnable{
 	 */
 	protected int iCounter;
 	
+	/**
+	 * Tells if it is necessary to generate a log
+	 */
 	protected boolean debug;
 	
+	/**
+	 * Anti-collision methods
+	 */
 	protected Hashtable<Integer, String> methods = new Hashtable<Integer,String>();
 	
+	/**
+	 * Local System efficiency statistics
+	 */
 	protected Hashtable<Integer, PerformanceData> statsDataSef = new Hashtable<Integer,PerformanceData>();
+	
+	/**
+	 * Local Total slots statistics
+	 */
 	protected Hashtable<Integer, PerformanceData> statsDataTotal = new Hashtable<Integer,PerformanceData>();
+	
+	/**
+	 * Local Frame statistics
+	 */
 	protected Hashtable<Integer, PerformanceData> statsDataFrames = new Hashtable<Integer,PerformanceData>();
 	
+	/**
+	 * Not defined
+	 */
 	protected int nedfsaSlotsInCollision = 0;
 	
 	/**
@@ -771,9 +791,13 @@ public class Simulator implements Runnable{
 		    this.writeToFile("Initial frame size: " + this.initialFrameSize, "stats.txt");
 		    this.writeToFile("--------------------------", "stats.txt");
 		}
-		
 	}
 	
+	/**
+	 * Convert Seconds to Hours, minutes and seconds
+	 * @param timer Time in Ms
+	 * @return A string in hours, minutes and seconds
+	 */
 	protected String secondsToHours(long timer) {
 		int time = (int)timer/1000;
 		String executionTime = String.valueOf(time) + " seconds";
@@ -1064,6 +1088,10 @@ public class Simulator implements Runnable{
 		return (this.qValue);
 	}
 	
+	/**
+	 * Check if the Slot has a good size (Cui Method)
+	 * @return Yes or No
+	 */
 	protected boolean isSlotSizeGood() {
 		int colSlot = 0;
 		int idlSlot = 0;
@@ -1100,6 +1128,10 @@ public class Simulator implements Runnable{
 		}
 	}
 	
+	/**
+	 * Check the collision state: col, idl or suc
+	 * @return
+	 */
 	protected int checkSlot() {
 		if (frame.get(0).getSlotSize()>1) { //COLLISION SLOTS
 			return 0;
