@@ -756,8 +756,9 @@ public class Simulator implements Runnable{
 		}
 		//****************** END DFSA ****************
 		timer.stop();
+		
 		if (this.debug) {
-			String msg = "[" + methods.get(this.method) + "] " + "Execution time: " + String.valueOf(timer.getTime()/1000) + " seconds";
+			String msg = "[" + methods.get(this.method) + "] " + "Execution time: " + secondsToHours(timer.getTime());
 	 		this.writeToFile(msg, "stats.txt");
 			//System.out.println("Tempo de execução: " + timer.getTime()/1000 + " segundos");
 			Runtime runtime = Runtime.getRuntime();
@@ -771,6 +772,18 @@ public class Simulator implements Runnable{
 		    this.writeToFile("--------------------------", "stats.txt");
 		}
 		
+	}
+	
+	protected String secondsToHours(long timer) {
+		int time = (int)timer/1000;
+		String executionTime = String.valueOf(time) + " seconds";
+		int hours = (int) time / 3600;
+	    int remainder = (int) time - hours * 3600;
+	    int mins = remainder / 60;
+	    remainder = remainder - mins * 60;
+	    int secs = remainder;
+	    executionTime = String.valueOf(hours) + " hour(s) and " + String.valueOf(mins) + " minute(s) and " + String.valueOf(secs) + " second(s)";
+		return executionTime;
 	}
 	
 	/**

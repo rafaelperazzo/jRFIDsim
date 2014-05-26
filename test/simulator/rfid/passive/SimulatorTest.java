@@ -158,6 +158,7 @@ public class SimulatorTest extends TestCase{
 		
 	}
 	
+		
 	//TODO Teste do confidence Interval
 	@Test
 	public void testConfidenceInterval() {
@@ -169,6 +170,7 @@ public class SimulatorTest extends TestCase{
 	public void testgetP() {
 		
 	}
+	
 	
 	
 }
