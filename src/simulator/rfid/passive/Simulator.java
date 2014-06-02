@@ -1157,6 +1157,8 @@ public class Simulator implements Runnable{
 			f.delete();
 		}
 		DescriptiveStatistics est = new DescriptiveStatistics();
+		DescriptiveStatistics differenceMean = new DescriptiveStatistics();
+		double diference=0;
 		for (this.numberOfTags=this.minTags; this.numberOfTags<=this.maxTags; this.numberOfTags = this.numberOfTags+ this.stepTags) {
 			est.clear();
 			for (int i=1; i<=this.iterations; i++) {
@@ -1168,11 +1170,13 @@ public class Simulator implements Runnable{
 			String msg = String.valueOf(this.numberOfTags) + " " + String.valueOf(est.getMean());
 			msg = msg + " " + String.valueOf(ciEst[0]) + " " + String.valueOf(ciEst[1]) + " ";
 			msg = msg + String.valueOf((int)Math.pow(2, Math.round(est.getMean())));
-			double diference = (this.numberOfTags-Math.pow(2, Math.round(est.getMean())))/this.numberOfTags;
+			diference = (this.numberOfTags-Math.pow(2, Math.round(est.getMean())))/this.numberOfTags;
+			diference = 100*diference;
+			differenceMean.addValue(diference);
 			msg = msg + " " + String.valueOf(diference);
 			this.writeToFile(msg, estimationFile);
 		}
-		
+		this.writeToFile(String.valueOf(differenceMean.getMean()),"dif.txt");
 	}
 	
 	@Override
