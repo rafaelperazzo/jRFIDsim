@@ -948,7 +948,7 @@ public class Simulator implements Runnable{
 	 * @param filename File name
 	 */
 	protected void writeToFile(String msg, String filename) {
-		File runStats = new File("stats.txt");
+		File runStats = new File(filename);
 		if (!runStats.exists()) {
 			try {
 				runStats.createNewFile();
@@ -1150,6 +1150,30 @@ public class Simulator implements Runnable{
 		this.frame.clear();
 	}
 
+	public void testEstimation() {
+		String estimationFile = "04_EST." + this.initialFrameSize + "." + this.maxTags + ".txt";
+		File f = new File(estimationFile);
+		if (f.exists()) {
+			f.delete();
+		}
+		DescriptiveStatistics est = new DescriptiveStatistics();
+		for (this.numberOfTags=this.minTags; this.numberOfTags<=this.maxTags; this.numberOfTags = this.numberOfTags+ this.stepTags) {
+			est.clear();
+			for (int i=1; i<=this.iterations; i++) {
+				this.initData();
+				this.startEstimation();
+				est.addValue(this.qValue);
+			}
+			double[] ciEst = this.confidenceInterval(est.getMean(), est.getStandardDeviation(), this.getP(this.confidenceLevel));
+			String msg = String.valueOf(this.numberOfTags) + " " + String.valueOf(est.getMean());
+			msg = msg + " " + String.valueOf(ciEst[0]) + " " + String.valueOf(ciEst[1]) + " ";
+			msg = msg + String.valueOf((int)Math.pow(2, Math.round(est.getMean())));
+			double diference = (this.numberOfTags-Math.pow(2, Math.round(est.getMean())))/this.numberOfTags;
+			msg = msg + " " + String.valueOf(diference);
+			this.writeToFile(msg, estimationFile);
+		}
+		
+	}
 	
 	@Override
 	public void run() {

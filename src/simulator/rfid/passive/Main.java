@@ -42,6 +42,10 @@ public class Main {
 				Thread sim = new Thread(new Simulator(begin,method, initialFrameSize,iterations,ci,end,steps,true));
 				sim.start();
 			}
+			else if (all.equals("test")) {
+				Simulator sim = new Simulator(begin,4, 4,iterations,ci,end,steps,true);
+				sim.testEstimation();
+			}
 			else {
 				Simulator schoute = new Simulator(begin,1, 128,iterations,ci,end,steps,true);
 				schoute.startDFSA();
