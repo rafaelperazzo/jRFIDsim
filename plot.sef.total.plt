@@ -46,11 +46,11 @@ set yrange [0.30:0.45]
 set xtics 0,500,5100
 set ytics 0.01
 set key default
-plot '01_SEF.MOTA.4.10000.txt' using 1:2:3:4 with linespoint ls 1 title "Our NEDFSA System Efficiency simulation results", '01_SEF.MOTA.4.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_SEF.C1G2.4.10000.txt' using 1:2:3:4 with linespoint ls 2 title "C1G2", '01_SEF.C1G2.4.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_SEF.LOWER.128.10000.txt' using 1:2:3:4 with linespoint ls 3 title "Lower Bound", '01_SEF.LOWER.128.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_SEF.SCHOUTE.128.10000.txt' using 1:2:3:4 with linespoint ls 4 title "Schoute", '01_SEF.SCHOUTE.128.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_SEF.EOMLEE.128.10000.txt' using 1:2:3:4 with linespoint ls 5 title "Eom-Lee", '01_SEF.EOMLEE.128.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle
+plot '01_SEF.MOTA.4.12000.txt' using 1:2:3:4 with linespoint ls 1 title "Our NEDFSA System Efficiency simulation results", '01_SEF.MOTA.4.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_SEF.C1G2.4.12000.txt' using 1:2:3:4 with linespoint ls 2 title "C1G2", '01_SEF.C1G2.4.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_SEF.LOWER.128.12000.txt' using 1:2:3:4 with linespoint ls 3 title "Lower Bound", '01_SEF.LOWER.128.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_SEF.SCHOUTE.128.12000.txt' using 1:2:3:4 with linespoint ls 4 title "Schoute", '01_SEF.SCHOUTE.128.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_SEF.EOMLEE.128.12000.txt' using 1:2:3:4 with linespoint ls 5 title "Eom-Lee", '01_SEF.EOMLEE.128.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle
 
 ##########################################################
 #TOTAL SLOTS COUNTER
@@ -73,9 +73,9 @@ set yrange [0:7500]
 set xtics 0,500,5100
 set ytics 500
 set key default
-plot '02_TOTAL.MOTA.4.10000.txt' using 1:2:3:4 with linespoint ls 1 title "NEDFSA Algorithm - Our simulation", '02_TOTAL.MOTA.4.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_TOTAL.C1G2.4.10000.txt' using 1:2:3:4 with linespoint ls 2 title "C1G2", '01_TOTAL.C1G2.4.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_TOTAL.LOWER.128.10000.txt' using 1:2:3:4 with linespoint ls 3 title "Lower Bound", '01_TOTAL.LOWER.128.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_TOTAL.SCHOUTE.128.10000.txt' using 1:2:3:4 with linespoint ls 4 title "Schoute", '01_TOTAL.SCHOUTE.128.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
-'01_TOTAL.EOMLEE.128.10000.txt' using 1:2:3:4 with linespoint ls 5 title "Eom-Lee", '01_TOTAL.EOMLEE.128.10000.txt' using 1:2:3:4 with errorbars ls 1 notitle
+plot '02_TOTAL.MOTA.4.12000.txt' using 1:2:3:4 with linespoint ls 1 title "NEDFSA Algorithm - Our simulation", '02_TOTAL.MOTA.4.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_TOTAL.C1G2.4.12000.txt' using 1:2:3:4 with linespoint ls 2 title "C1G2", '01_TOTAL.C1G2.4.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_TOTAL.LOWER.128.12000.txt' using 1:2:3:4 with linespoint ls 3 title "Lower Bound", '01_TOTAL.LOWER.128.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_TOTAL.SCHOUTE.128.12000.txt' using 1:2:3:4 with linespoint ls 4 title "Schoute", '01_TOTAL.SCHOUTE.128.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle,
+'01_TOTAL.EOMLEE.128.12000.txt' using 1:2:3:4 with linespoint ls 5 title "Eom-Lee", '01_TOTAL.EOMLEE.128.12000.txt' using 1:2:3:4 with errorbars ls 1 notitle
 
