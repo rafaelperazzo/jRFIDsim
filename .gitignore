@@ -1,5 +1,6 @@
 *.class
 *.txt
+*.eps
 /bin/
 /bin/
 /bin/
