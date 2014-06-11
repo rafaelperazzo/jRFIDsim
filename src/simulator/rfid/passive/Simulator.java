@@ -236,7 +236,7 @@ public class Simulator implements Runnable{
 	 * @param method DFSA method
 	 * @param initialFrameSize Initial frame size
 	 * @param iterations Number of repetitions
-	 * @param cc Confidence interval (90%, 95%, 99% , ...
+	 * @param cc Confidence interval (90%, 95%, 99% , ...)
 	 * @param maxTags Final number of tags
 	 * @param stepTags Steps to the number of tags
 	 */
@@ -764,6 +764,11 @@ public class Simulator implements Runnable{
 					this.setC(0.3);
 					this.standardDfsa();
 				}
+				else if (this.method==SimulatorConstants.DBTSA) {
+					this.startEstimation();
+					this.setC(1);
+					this.startDBTSA();
+				}
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
 				statsInst.addValue(this.iCounter);
@@ -1178,6 +1183,24 @@ public class Simulator implements Runnable{
 		}
 		this.writeToFile(String.valueOf(differenceMean.getMean()),"dif.txt");
 	}
+	
+
+	/**
+	 * Start Dynamic BTSA
+	 */
+	protected void startDBTSA() {
+		//TODO IMPLEMENTAR DBTSA
+		do {
+			this.initCurrentFrame();
+			this.sendQuery();
+			this.iCounter++;
+			this.prepareSlots();
+			this.identifyTagsQ();
+			this.finalizeFrameQ();
+		} while (end==false);
+	}
+	
+	
 	
 	@Override
 	public void run() {

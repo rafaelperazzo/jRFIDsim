@@ -17,13 +17,12 @@ public class Main {
 		 * method: 1 - Schoute; 2-LOWER; 3-Eom-Lee; 4-Mota; 5-C1G2
 		 * deleteStatusFile: 1- Yes; 0-No
 		 */
-		
 		SimulatorConstants.startHashTable();
-		
+		Util.writePlotFile(100, 15000, 1000, 200, 90, 33000);
 		int begin=100,end=1000,steps=100,ci=90, iterations=100;
 		int method=1, deleteStats=1, initialFrameSize=128;
 		String all = "no";
-		
+		Util.writePlotFile(100, 15000, 1000, 500, 90, 33000);
 		if (args.length==9) {
 			begin=Integer.parseInt(args[0]);
 			end=Integer.parseInt(args[1]);
