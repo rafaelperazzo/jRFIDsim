@@ -122,6 +122,7 @@ public class SimulatorTest extends TestCase{
 	public void testLowerMethod() {
 		Simulator s = new Simulator(1000,SimulatorConstants.LOWER, 128,50,90,2000,100,false);
 		s.startDFSA();
+		//System.out.println(s.getStatsDataTotal().get(2000).getMean());
 		for (int i=1000; i<=2000; i=i+100) {
 			assertEquals(0.32, s.getStatsDataSef().get(i).getMean(),0.025);
 		}
