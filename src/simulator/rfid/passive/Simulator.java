@@ -77,6 +77,10 @@ public class Simulator implements Runnable{
 	 */
 	protected int totalSlots;
 	
+	protected int colSlots;
+	
+	protected int idlSlots;
+	
 	/**
 	 * End of DFSA ?
 	 */
@@ -121,6 +125,26 @@ public class Simulator implements Runnable{
 	 * Stats System Efficiency File
 	 */
 	protected String statsSefFile;
+	
+	/**
+	 * Statistics for Collision Slots 
+	 */
+	protected DescriptiveStatistics statsCol = new DescriptiveStatistics();
+	
+	/**
+	 * Stats Collisions File
+	 */
+	protected String statsColFile;
+	
+	/**
+	 * Statistics for Idle Slots 
+	 */
+	protected DescriptiveStatistics statsIdl = new DescriptiveStatistics();
+	
+	/**
+	 * Stats Idle File
+	 */
+	protected String statsIdlFile;
 	
 	/**
 	 * Statistics for Instructions counter 
@@ -214,6 +238,8 @@ public class Simulator implements Runnable{
 		this.col = 0;
 		this.suc = 0;
 		this.idl = 0;
+		this.colSlots = 0;
+		this.idlSlots = 0;
 		this.frames = 1;
 		this.totalSlots = 0;
 		this.end = false;
@@ -226,6 +252,8 @@ public class Simulator implements Runnable{
 		methods.put(3, "EOMLEE");
 		methods.put(4, "NEDFSA");
 		methods.put(5, "C1G2");
+		methods.put(6, "DBTSA");
+		methods.put(7, "MOTA");
 		statsTotal.clear();
 		statsSef.clear();
 		statsInst.clear();
@@ -253,11 +281,15 @@ public class Simulator implements Runnable{
 		this.stepTags = stepTags;
 		this.minTags = numTags;
 		this.estimationAdjust = adjust;
+		this.colSlots = 0;
+		this.idlSlots = 0;
 		methods.put(1, "SCHOUTE");
 		methods.put(2, "LOWER");
 		methods.put(3, "EOMLEE");
 		methods.put(4, "NEDFSA");
 		methods.put(5, "C1G2");
+		methods.put(6, "DBTSA");
+		methods.put(7, "MOTA");
 		//this.end = false;
 		this.numberOfTags = numTags;
 		this.initialFrameSize = initialFrameSize;
@@ -269,20 +301,26 @@ public class Simulator implements Runnable{
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 		} 
 		this.iCounter = 0;
-		this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
-		this.statsTotalFile = "02_TOTAL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
-		this.statsInstFile = "03_FRAMES." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + ".txt";
+		this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust + ".txt";
+		this.statsTotalFile = "02_TOTAL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags  + "." + this.estimationAdjust + ".txt";
+		this.statsInstFile = "03_FRAMES." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust +".txt";
+		this.statsColFile = "04_COL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust  + ".txt";
+		this.statsIdlFile = "05_IDL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust + ".txt";
 		File f = new File(this.statsInstFile);
 		if (f.exists()) f.delete();
 		f = new File(this.statsSefFile);
 		if (f.exists()) f.delete();
 		f = new File(this.statsTotalFile);
 		if (f.exists()) f.delete();
-		f = new File(this.statsInstFile);
+		f = new File(this.statsIdlFile);
+		if (f.exists()) f.delete();
+		f = new File(this.statsColFile);
 		if (f.exists()) f.delete();
 		statsTotal.clear();
 		statsSef.clear();
 		statsInst.clear();
+		statsCol.clear();
+		statsIdl.clear();
 		this.initData();
 		
 	}
@@ -513,6 +551,8 @@ public class Simulator implements Runnable{
 		this.col = 0;
 		this.suc = 0;
 		this.idl = 0;
+		this.colSlots = 0;
+		this.idlSlots = 0;
 		this.frames = 1;
 		this.totalSlots = 0;
 		this.iCounter = 0;
@@ -525,11 +565,11 @@ public class Simulator implements Runnable{
 		}
 		else if (this.method==4) { //NEDFSA
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
-			this.currentFrameSize = (int)(this.currentFrameSize*0.66);
+			//this.currentFrameSize = (int)(this.currentFrameSize*0.66);
 		}
 		else if (this.method==7) { //MOTA
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
-			this.currentFrameSize = (int)(this.currentFrameSize*this.estimationAdjust);
+			//this.currentFrameSize = (int)(this.currentFrameSize*this.estimationAdjust);
 		}
 		else {
 			this.currentFrameSize = this.initialFrameSize;
@@ -642,9 +682,11 @@ public class Simulator implements Runnable{
 			if (frame.get(i).getSlotSize()>1) { //COLLISION SLOT
 				if ((this.method==SimulatorConstants.NEDFSA)||(this.method==SimulatorConstants.MOTA)) {
 					this.identifyTagsInCollision(frame.get(i).getTags());
+					this.colSlots++;
 				}
 				else {
 					this.col++;
+					this.colSlots++;
 				}
 			}
 			else if (frame.get(i).getSlotSize()==1) { //SUCCESS SLOT
@@ -653,6 +695,7 @@ public class Simulator implements Runnable{
 			}
 			else if (frame.get(i).getSlotSize()==0) { //IDLE SLOT
 				this.idl++;
+				this.idlSlots++;
 			}
 		}
 	}
@@ -780,11 +823,13 @@ public class Simulator implements Runnable{
 				else if (this.method==SimulatorConstants.NEDFSA) {
 					this.startEstimation();
 					this.setC(0.3);
+					this.currentFrameSize = (int)(this.currentFrameSize * 0.66);
 					this.standardDfsa();
 				}
 				else if (this.method==SimulatorConstants.MOTA) {
 					this.startEstimation();
 					this.setC(0.3);
+					this.currentFrameSize = (int)(this.currentFrameSize*this.estimationAdjust);
 					this.standardDfsa();
 				}
 				else if (this.method==SimulatorConstants.DBTSA) {
@@ -795,6 +840,8 @@ public class Simulator implements Runnable{
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
 				statsInst.addValue(this.iCounter);
+				statsCol.addValue(this.colSlots);
+				statsIdl.addValue(this.idlSlots);
 				//this.writeOutputToFile();
 			}
 			this.setupStatsHashTable();
@@ -890,6 +937,8 @@ public class Simulator implements Runnable{
 		File sef = new File(this.statsSefFile);
 		File total = new File(this.statsTotalFile);
 		File counter = new File(this.statsInstFile);
+		File collisions = new File(this.statsColFile);
+		File idle = new File(this.statsIdlFile);
 		if (!sef.exists()) {
 			try {
 				sef.createNewFile();
@@ -911,33 +960,61 @@ public class Simulator implements Runnable{
 				e.printStackTrace();
 			}
 		}
+		if (!collisions.exists()) {
+			try {
+				collisions.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (!idle.exists()) {
+			try {
+				idle.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		FileWriter fwriter = null;
 		FileWriter fwriterTotal = null;
 		FileWriter fwriterCounter = null;
+		FileWriter fwriterCol = null;
+		FileWriter fwriterIdl = null;
 		try {
 			fwriter = new FileWriter(sef,true);
 			fwriterTotal = new FileWriter(total,true);
 			fwriterCounter = new FileWriter(counter,true);
+			fwriterCol = new FileWriter(collisions,true);
+			fwriterIdl = new FileWriter(idle,true);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		PrintWriter out = new PrintWriter(fwriter,true);
 		PrintWriter outTotal = new PrintWriter(fwriterTotal,true);
 		PrintWriter outCounter = new PrintWriter(fwriterCounter,true);
+		PrintWriter outCol = new PrintWriter(fwriterCol,true);
+		PrintWriter outIdl = new PrintWriter(fwriterIdl,true);
 		double[] ciSef = this.confidenceInterval(statsSef.getMean(), statsSef.getStandardDeviation(), this.getP(this.confidenceLevel));
 		double[] ciTotal = this.confidenceInterval(statsTotal.getMean(), statsTotal.getStandardDeviation(), this.getP(this.confidenceLevel));
 		double[] ciCounter = this.confidenceInterval(statsInst.getMean(), statsInst.getStandardDeviation(), this.getP(this.confidenceLevel));
+		double[] ciCol = this.confidenceInterval(statsCol.getMean(), statsCol.getStandardDeviation(), this.getP(this.confidenceLevel));
+		double[] ciIdl = this.confidenceInterval(statsIdl.getMean(), statsIdl.getStandardDeviation(), this.getP(this.confidenceLevel));
 		this.statsDataSef.put(this.numberOfTags, new PerformanceData(this.statsSef.getMean(),ciSef[0],ciSef[1]));
 		out.printf(Locale.US,"%d %.4f %.4f %.4f\n", this.numberOfTags,this.statsSef.getMean(), ciSef[0], ciSef[1]);
 		outTotal.printf(Locale.US,"%d %.0f %.0f %.0f\n", this.numberOfTags,this.statsTotal.getMean(), ciTotal[0], ciTotal[1]);
 		outCounter.printf(Locale.US,"%d %.2f %.2f %.2f\n", this.numberOfTags,this.statsInst.getMean(), ciCounter[0], ciCounter[1]);
+		outCol.printf(Locale.US,"%d %.4f %.4f %.4f\n", this.numberOfTags,this.statsCol.getMean(), ciCol[0], ciCol[1]);
+		outIdl.printf(Locale.US,"%d %.4f %.4f %.4f\n", this.numberOfTags,this.statsIdl.getMean(), ciIdl[0], ciIdl[1]);
 		out.close();
 		outTotal.close();
 		outCounter.close();
+		outCol.close();
+		outIdl.close();
 		try {
 			fwriter.close();
 			fwriterTotal.close();
 			fwriterCounter.close();
+			fwriterCol.close();
+			fwriterIdl.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
