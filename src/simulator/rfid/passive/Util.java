@@ -24,6 +24,7 @@ public class Util {
 		dados = dados + "set style line 3 lc rgb 'red' lt 1 lw 2 pt 9 ps 0\n";
 		dados = dados + "set style line 4 lc rgb 'orange' lt 2 lw 2 pt 4 ps 0\n";
 		dados = dados + "set style line 5 lc rgb 'yellow' lt 9 lw 2 pt 6 ps 0\n";
+		dados = dados + "set style line 6 lc rgb 'green' lt 9 lw 2 pt 6 ps 0\n";
 		dados = dados + "set terminal postscript eps\n";
 		dados = dados + "set output \"plot.sef.eps\"\n";
 		dados = dados + "set border linewidth 3\n";
@@ -39,6 +40,7 @@ public class Util {
 		dados = dados + "'01_SEF.C1G2.4." + end + ".txt' using 1:2:3:4 with linespoint ls 2 title \"C1G2\", '01_SEF.C1G2.4." + end + ".txt' using 1:2:3:4 with errorbars ls 2 notitle,";
 		dados = dados + "'01_SEF.LOWER.128." + end + ".txt' using 1:2:3:4 with linespoint ls 3 title \"LOWER\", '01_SEF.LOWER.128." + end + ".txt' using 1:2:3:4 with errorbars ls 3 notitle,";
 		dados = dados + "'01_SEF.SCHOUTE.128." + end + ".txt' using 1:2:3:4 with linespoint ls 4 title \"SCHOUTE\", '01_SEF.SCHOUTE.128." + end + ".txt' using 1:2:3:4 with errorbars ls 4 notitle,";
+		dados = dados + "'01_SEF.NEDFSA.4." + end + ".txt' using 1:2:3:4 with linespoint ls 6 title \"NEDFSA\", '01_SEF.NEDFSA.4." + end + ".txt' using 1:2:3:4 with errorbars ls 6 notitle,";
 		dados = dados + "'01_SEF.EOMLEE.128." + end + ".txt' using 1:2:3:4 with linespoint ls 5 title \"EOMLEE\", '01_SEF.EOMLEE.128." + end + ".txt' using 1:2:3:4 with errorbars ls 5 notitle\n";
 		dados = dados + "unset format\n";
 		dados = dados + "unset label\n";
@@ -61,6 +63,7 @@ public class Util {
 		dados = dados + "'02_TOTAL.C1G2.4." + end + ".txt' using 1:2:3:4 with linespoint ls 2 title \"C1G2\", '02_TOTAL.C1G2.4." + end + ".txt' using 1:2:3:4 with errorbars ls 2 notitle,";
 		dados = dados + "'02_TOTAL.LOWER.128." + end + ".txt' using 1:2:3:4 with linespoint ls 3 title \"LOWER\", '02_TOTAL.LOWER.128." + end + ".txt' using 1:2:3:4 with errorbars ls 3 notitle,";
 		dados = dados + "'02_TOTAL.SCHOUTE.128." + end + ".txt' using 1:2:3:4 with linespoint ls 4 title \"SCHOUTE\", '02_TOTAL.SCHOUTE.128." + end + ".txt' using 1:2:3:4 with errorbars ls 4 notitle,";
+		dados = dados + "'02_TOTAL.NEDFSA.4." + end + ".txt' using 1:2:3:4 with linespoint ls 6 title \"NEDFSA\", '02_TOTAL.NEDFSA.4." + end + ".txt' using 1:2:3:4 with errorbars ls 6 notitle,";
 		dados = dados + "'02_TOTAL.EOMLEE.128." + end + ".txt' using 1:2:3:4 with linespoint ls 5 title \"EOMLEE\", '02_TOTAL.EOMLEE.128." + end + ".txt' using 1:2:3:4 with errorbars ls 5 notitle";
 		dados = dados + "\n";
 		File f = new File("plot.plt");

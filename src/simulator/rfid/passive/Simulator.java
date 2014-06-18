@@ -204,6 +204,9 @@ public class Simulator implements Runnable{
 	 */
 	protected int nedfsaSlotsInCollision = 0;
 	
+	
+	protected double estimationAdjust = 1;
+	
 	/**
 	 * Default Constructor
 	 */
@@ -221,7 +224,7 @@ public class Simulator implements Runnable{
 		methods.put(1, "SCHOUTE");
 		methods.put(2, "LOWER");
 		methods.put(3, "EOMLEE");
-		methods.put(4, "MOTA");
+		methods.put(4, "NEDFSA");
 		methods.put(5, "C1G2");
 		statsTotal.clear();
 		statsSef.clear();
@@ -236,11 +239,11 @@ public class Simulator implements Runnable{
 	 * @param method DFSA method
 	 * @param initialFrameSize Initial frame size
 	 * @param iterations Number of repetitions
-	 * @param cc Confidence interval (90%, 95%, 99% , ...)
+	 * @param cc Confidence interval (90%, 95%, 99% , ...) 
 	 * @param maxTags Final number of tags
 	 * @param stepTags Steps to the number of tags
 	 */
-	public Simulator(int numTags, int method, int initialFrameSize, int iterations, double cc, int maxTags, int stepTags, boolean debug) {
+	public Simulator(int numTags, int method, int initialFrameSize, int iterations, double cc, int maxTags, int stepTags, boolean debug, double adjust) {
 		this.method = method;
 		this.debug = debug;
 		this.statsSefFile = this.traceSefFilename + ".stats";
@@ -249,10 +252,11 @@ public class Simulator implements Runnable{
 		this.maxTags = maxTags;
 		this.stepTags = stepTags;
 		this.minTags = numTags;
+		this.estimationAdjust = adjust;
 		methods.put(1, "SCHOUTE");
 		methods.put(2, "LOWER");
 		methods.put(3, "EOMLEE");
-		methods.put(4, "MOTA");
+		methods.put(4, "NEDFSA");
 		methods.put(5, "C1G2");
 		//this.end = false;
 		this.numberOfTags = numTags;
@@ -516,8 +520,16 @@ public class Simulator implements Runnable{
 		this.qValue = this.initialFrameSize;
 		this.qfp = this.initialFrameSize;
 		this.c = 0.3;
-		if ((this.method==5)||(this.method==4)) {
+		if (this.method==5) { //C1G2
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+		}
+		else if (this.method==4) { //NEDFSA
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+			this.currentFrameSize = (int)(this.currentFrameSize*0.66);
+		}
+		else if (this.method==7) { //MOTA
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+			this.currentFrameSize = (int)(this.currentFrameSize*this.estimationAdjust);
 		}
 		else {
 			this.currentFrameSize = this.initialFrameSize;
@@ -628,7 +640,7 @@ public class Simulator implements Runnable{
 	protected void identifyTags() {
 		for (int i=0; i<this.currentFrameSize; i++) {
 			if (frame.get(i).getSlotSize()>1) { //COLLISION SLOT
-				if (this.method==SimulatorConstants.MOTA) {
+				if ((this.method==SimulatorConstants.NEDFSA)||(this.method==SimulatorConstants.MOTA)) {
 					this.identifyTagsInCollision(frame.get(i).getTags());
 				}
 				else {
@@ -650,7 +662,13 @@ public class Simulator implements Runnable{
 	 * @param tagsInCollision Tags in collision
 	 */
 	protected void identifyTagsInCollision(ArrayList<Tag> tagsInCollision) {
-		Simulator colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.LOWER, 2,1,90,3,1,false);
+		Simulator colHandler = null;
+		if (this.method==SimulatorConstants.NEDFSA) {
+			colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.SCHOUTE, 3,1,90,3,1,false,1);
+		}
+		else if (this.method==SimulatorConstants.MOTA) {
+			colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.LOWER, 2,1,90,3,1,false,1);
+		}
 		colHandler.setTags(tagsInCollision);
 		colHandler.standardDfsa();
 		this.totalSlots = this.totalSlots + colHandler.totalSlots;
@@ -758,6 +776,11 @@ public class Simulator implements Runnable{
 				} 
 				else if (this.method==SimulatorConstants.C1G2) {
 					this.startQ();
+				}
+				else if (this.method==SimulatorConstants.NEDFSA) {
+					this.startEstimation();
+					this.setC(0.3);
+					this.standardDfsa();
 				}
 				else if (this.method==SimulatorConstants.MOTA) {
 					this.startEstimation();

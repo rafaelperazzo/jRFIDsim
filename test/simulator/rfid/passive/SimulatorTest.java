@@ -17,7 +17,7 @@ public class SimulatorTest extends TestCase{
 	 */
 	public void testSimulator() {
 		
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false,1);
 		assertEquals(100, s.getNumberOfTags());
 		assertEquals(1, s.getMethod());
 		assertEquals(128, s.getInitialFrameSize());
@@ -42,7 +42,7 @@ public class SimulatorTest extends TestCase{
 	@Test
 	public void testSchoute() {
 		
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false,1);
 		assertEquals(7,s.schoute(3));
 		assertEquals(5,s.schoute(2));
 		assertEquals(10,s.schoute(4));
@@ -52,7 +52,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testInitCurrentFrame() {
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false,1);
 		s.initCurrentFrame();
 		assertEquals(s.getInitialFrameSize(), s.getFrame().size());
 		assertEquals(128,s.initialFrameSize);
@@ -60,7 +60,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testSendQuery() {
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false,1);
 		s.initCurrentFrame();
 		s.sendQuery();
 		for (int i=0; i<s.getTags().size(); i++) {
@@ -73,7 +73,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testEomLee() {
-		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.SCHOUTE, 128,200,90,5000,100,false,1);
 		assertEquals(7, s.eomlee(3, 20, 0.001, 32));
 		assertEquals(194, s.eomlee(70, 30, 0.001, 128));
 		assertEquals(128,s.initialFrameSize);
@@ -81,7 +81,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testMiniSet() {
-		Simulator s = new Simulator(3,SimulatorConstants.C1G2, 3,100,90,3,1,false);
+		Simulator s = new Simulator(3,SimulatorConstants.C1G2, 3,100,90,3,1,false,1);
 		s.startDFSA();
 		File f = new File(s.statsSefFile);
 		assertTrue(!f.exists());
@@ -95,7 +95,7 @@ public class SimulatorTest extends TestCase{
 	@Test
 	public void testIsSlotGoodSize() {
 		
-		Simulator s = new Simulator(1000,SimulatorConstants.C1G2, 4,200,90,5000,100,false);
+		Simulator s = new Simulator(1000,SimulatorConstants.C1G2, 4,200,90,5000,100,false,1);
 		assertEquals(4,s.qValue);
 		assertEquals(16,s.currentFrameSize);
 		int cont =0;
@@ -110,7 +110,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testSchouteMethod() {
-		Simulator s = new Simulator(1000,SimulatorConstants.SCHOUTE, 128,50,90,2000,100,false);
+		Simulator s = new Simulator(1000,SimulatorConstants.SCHOUTE, 128,50,90,2000,100,false,1);
 		s.startDFSA();
 		for (int i=1000; i<=2000; i=i+100) {
 			assertEquals(0.33, s.getStatsDataSef().get(i).getMean(),0.025);
@@ -120,7 +120,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testLowerMethod() {
-		Simulator s = new Simulator(1000,SimulatorConstants.LOWER, 128,50,90,2000,100,false);
+		Simulator s = new Simulator(1000,SimulatorConstants.LOWER, 128,50,90,2000,100,false,1);
 		s.startDFSA();
 		//System.out.println(s.getStatsDataTotal().get(2000).getMean());
 		for (int i=1000; i<=2000; i=i+100) {
@@ -131,7 +131,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testEOMMethod() {
-		Simulator s = new Simulator(1000,SimulatorConstants.EOMLEE, 128,50,90,2000,100,false);
+		Simulator s = new Simulator(1000,SimulatorConstants.EOMLEE, 128,50,90,2000,100,false,1);
 		s.startDFSA();
 		for (int i=1000; i<=2000; i=i+100) {
 			assertEquals(0.34, s.getStatsDataSef().get(i).getMean(),0.025);
@@ -141,7 +141,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testC1G2Method() {
-		Simulator s = new Simulator(100,SimulatorConstants.C1G2, 4,50,90,700,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.C1G2, 4,50,90,700,100,false,1);
 		s.startDFSA();
 		for (int i=100; i<=700; i=i+100) {
 			assertEquals(0.33, s.getStatsDataSef().get(i).getMean(),0.025);
@@ -151,7 +151,7 @@ public class SimulatorTest extends TestCase{
 	
 	@Test
 	public void testMOTAMethod() {
-		Simulator s = new Simulator(100,SimulatorConstants.MOTA, 4,50,90,2000,100,false);
+		Simulator s = new Simulator(100,SimulatorConstants.MOTA, 4,50,90,2000,100,false,1);
 		s.startDFSA();
 		for (int i=1000; i<=2000; i=i+100) {
 			assertEquals(0.4, s.getStatsDataSef().get(i).getMean(),0.025);
