@@ -56,6 +56,11 @@ public class Main {
 				Simulator sim = new Simulator(begin,4, 4,iterations,ci,end,steps,true,adjust);
 				sim.testEstimation();
 			}
+			else if (all.equals("col")) {
+				Simulator mota = new Simulator(begin,7, 4,iterations,ci,end,steps,true,adjust);
+				mota.setCollisionsLog(true);
+				mota.startDFSA();			
+			}
 			else {
 				Simulator schoute = new Simulator(begin,1, 128,iterations,ci,end,steps,true,adjust);
 				schoute.startDFSA();
@@ -67,11 +72,14 @@ public class Main {
 				Simulator eomlee = new Simulator(begin,3, 128,iterations,ci,end,steps,true,adjust);
 				eomlee.startDFSA();
 				System.gc();
-				Simulator mota = new Simulator(begin,4, 4,iterations,ci,end,steps,true,adjust);
-				mota.startDFSA();
+				Simulator nedfsa = new Simulator(begin,4, 4,iterations,ci,end,steps,true,adjust);
+				nedfsa.startDFSA();
 				System.gc();
 				Simulator c1g2 = new Simulator(begin,5, 4,iterations,ci,end,steps,true,adjust);
 				c1g2.startDFSA();
+				System.gc();
+				Simulator mota = new Simulator(begin,7, 4,iterations,ci,end,steps,true,adjust);
+				mota.startDFSA();
 			}
 			 
 		}

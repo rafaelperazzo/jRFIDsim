@@ -231,6 +231,8 @@ public class Simulator implements Runnable{
 	
 	protected double estimationAdjust = 1;
 	
+	protected boolean collisionsLog = false;
+	
 	/**
 	 * Default Constructor
 	 */
@@ -351,6 +353,16 @@ public class Simulator implements Runnable{
 	 */
 	public double getC() {
 		return c;
+	}
+
+
+	public boolean isCollisionsLog() {
+		return collisionsLog;
+	}
+
+
+	public void setCollisionsLog(boolean collisionsLog) {
+		this.collisionsLog = collisionsLog;
 	}
 
 
@@ -680,8 +692,11 @@ public class Simulator implements Runnable{
 	protected void identifyTags() {
 		for (int i=0; i<this.currentFrameSize; i++) {
 			if (frame.get(i).getSlotSize()>1) { //COLLISION SLOT
+				if (this.collisionsLog)
+					this.writeToFile(String.valueOf(frame.get(i).getSlotSize()), "collisions.col");
 				if ((this.method==SimulatorConstants.NEDFSA)||(this.method==SimulatorConstants.MOTA)) {
-					this.identifyTagsInCollision(frame.get(i).getTags());
+					if (!this.collisionsLog)
+						this.identifyTagsInCollision(frame.get(i).getTags());
 					this.colSlots++;
 				}
 				else {
@@ -715,6 +730,8 @@ public class Simulator implements Runnable{
 		colHandler.setTags(tagsInCollision);
 		colHandler.standardDfsa();
 		this.totalSlots = this.totalSlots + colHandler.totalSlots;
+		this.idlSlots = this.idlSlots + colHandler.idlSlots;
+		this.colSlots = this.colSlots + colHandler.colSlots;
 		if (colHandler.tags.size()>0) System.out.println("ERRO!!");
 	}
 	
