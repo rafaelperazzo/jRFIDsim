@@ -233,6 +233,9 @@ public class Simulator implements Runnable{
 	
 	protected boolean collisionsLog = false;
 	
+	protected int DBTSA_sc = 0;
+	
+	
 	/**
 	 * Default Constructor
 	 */
@@ -583,6 +586,9 @@ public class Simulator implements Runnable{
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 			//this.currentFrameSize = (int)(this.currentFrameSize*this.estimationAdjust);
 		}
+		else if (this.method==6) { //DBTSA 
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+		}
 		else {
 			this.currentFrameSize = this.initialFrameSize;
 		}
@@ -695,8 +701,13 @@ public class Simulator implements Runnable{
 				if (this.collisionsLog)
 					this.writeToFile(String.valueOf(frame.get(i).getSlotSize()), "collisions.col");
 				if ((this.method==SimulatorConstants.NEDFSA)||(this.method==SimulatorConstants.MOTA)) {
-					if (!this.collisionsLog)
+					if (!this.collisionsLog) {
+						for (int j=0; j<frame.get(i).getTags().size(); j++) {
+							this.removeTag(frame.get(i).getTags().get(j).getCode());
+						}
+						//System.out.println(frame.get(i).getTags().size());
 						this.identifyTagsInCollision(frame.get(i).getTags());
+					}
 					this.colSlots++;
 				}
 				else {
@@ -727,12 +738,23 @@ public class Simulator implements Runnable{
 		else if (this.method==SimulatorConstants.MOTA) {
 			colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.LOWER, 2,1,90,3,1,false,1);
 		}
+		else if (this.method==SimulatorConstants.DBTSA) {
+			colHandler = new Simulator(tagsInCollision.size(),SimulatorConstants.C1G2, 2,1,90,3,1,false,1);
+			colHandler.setC(1);
+		}
 		colHandler.setTags(tagsInCollision);
-		colHandler.standardDfsa();
+		if (colHandler.method==SimulatorConstants.C1G2) {
+			colHandler.startQ();
+		}
+		else {
+			colHandler.standardDfsa();
+		}
 		this.totalSlots = this.totalSlots + colHandler.totalSlots;
 		this.idlSlots = this.idlSlots + colHandler.idlSlots;
 		this.colSlots = this.colSlots + colHandler.colSlots;
-		if (colHandler.tags.size()>0) System.out.println("ERRO!!");
+		if (colHandler.tags.size()>0) { 
+			System.out.println("ERRO!!(" + colHandler.tags.size() + ")");
+		}
 	}
 	
 	/**
@@ -802,6 +824,7 @@ public class Simulator implements Runnable{
 		for (int i=0; i<tags.size(); i++) {
 			if (tags.get(i).getCode()==code) {
 				tags.remove(i);
+				
 				break;
 			}
 		}
@@ -850,10 +873,11 @@ public class Simulator implements Runnable{
 					this.standardDfsa();
 				}
 				else if (this.method==SimulatorConstants.DBTSA) {
-					this.startEstimation();
 					this.setC(1);
+					this.DBTSA_sc = 0;
 					this.startDBTSA();
 				}
+				
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
 				statsInst.addValue(this.iCounter);
@@ -1140,16 +1164,18 @@ public class Simulator implements Runnable{
 	 */
 	protected void finalizeFrameQ() {
 		this.totalSlots++;
-		if (this.qfp<1) {
+		if (this.qfp<=0) {
 			this.end = true;
 			this.frame.clear();
 		}
 		else {
 			if (this.col==1) {
-				this.qfp = this.qfp + this.c;
+				this.qfp = this.qfp + this.c; 
+				this.qfp = Math.min(15,this.qfp);
 			}
 			else if (this.idl==1) {
 				this.qfp = this.qfp - this.c;
+				this.qfp = Math.max(0, this.qfp);
 			}
 			this.qValue = (int)Math.round(this.qfp);
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
@@ -1312,12 +1338,56 @@ public class Simulator implements Runnable{
 			this.sendQuery();
 			this.iCounter++;
 			this.prepareSlots();
-			this.identifyTagsQ();
-			this.finalizeFrameQ();
+			this.identifyTagsDBTSA();
+			this.finalizeFrameDBTSA();
 		} while (end==false);
 	}
 	
+	/**
+	 * Identify tags in DBTSA Algorithm
+	 */
+	protected void identifyTagsDBTSA() {
+			if (frame.get(0).getSlotSize()>1) { 
+				this.col++;
+				this.identifyTagsInCollision(frame.get(0).getTags());
+			}
+			else if (frame.get(0).getSlotSize()==1) {
+				if (this.DBTSA_sc!=0) {
+					this.suc++;
+					this.removeTag(frame.get(0).getTags().get(0).getCode());
+				}
+				this.DBTSA_sc++;
+			}
+			else if (frame.get(0).getSlotSize()==0) {
+				this.idl++;
+			}
+	}
 	
+	/**
+	 * Ends frame for DBTSA Algorithm
+	 */
+	protected void finalizeFrameDBTSA() {
+		this.totalSlots++;
+		if (this.qfp<1) {
+			this.end = true;
+			this.frame.clear();
+		}
+		else {
+			if (this.col==1) {
+				this.qfp = this.qfp + this.c;
+			}
+			else if (this.idl==1) {
+				this.qfp = this.qfp - this.c;
+			}
+			this.qValue = (int)Math.round(this.qfp);
+			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+			this.col = 0;
+			this.idl = 0;
+			this.suc = 0;
+			this.frames++;
+			this.frame.clear();
+		}
+	}
 	
 	@Override
 	public void run() {
