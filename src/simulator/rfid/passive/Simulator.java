@@ -755,6 +755,9 @@ public class Simulator implements Runnable{
 		if (colHandler.tags.size()>0) { 
 			System.out.println("ERRO!!(" + colHandler.tags.size() + ")");
 		}
+		else {
+			//System.out.println("Sucesso!");
+		}
 	}
 	
 	/**
@@ -1164,7 +1167,8 @@ public class Simulator implements Runnable{
 	 */
 	protected void finalizeFrameQ() {
 		this.totalSlots++;
-		if (this.qfp<=0) {
+		
+		if ((this.qfp<=0)&&(this.idl==1)) {
 			this.end = true;
 			this.frame.clear();
 		}
@@ -1349,6 +1353,9 @@ public class Simulator implements Runnable{
 	protected void identifyTagsDBTSA() {
 			if (frame.get(0).getSlotSize()>1) { 
 				this.col++;
+				for (int j=0; j<frame.get(0).getTags().size(); j++) {
+					this.removeTag(frame.get(0).getTags().get(j).getCode());
+				}
 				this.identifyTagsInCollision(frame.get(0).getTags());
 			}
 			else if (frame.get(0).getSlotSize()==1) {
@@ -1368,16 +1375,18 @@ public class Simulator implements Runnable{
 	 */
 	protected void finalizeFrameDBTSA() {
 		this.totalSlots++;
-		if (this.qfp<1) {
+		if (this.qfp<=0) {
 			this.end = true;
 			this.frame.clear();
 		}
 		else {
 			if (this.col==1) {
-				this.qfp = this.qfp + this.c;
+				this.qfp = this.qfp + this.c; 
+				this.qfp = Math.min(15,this.qfp);
 			}
 			else if (this.idl==1) {
 				this.qfp = this.qfp - this.c;
+				this.qfp = Math.max(0, this.qfp);
 			}
 			this.qValue = (int)Math.round(this.qfp);
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
