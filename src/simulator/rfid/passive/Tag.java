@@ -61,7 +61,16 @@ public class Tag {
 		}
 		else this.rng16 = 0;
 	}
-
+	
+	public void updateRng16(int value) {
+		this.rng16 = this.rng16 + value;
+		if (this.rng16<0) System.out.println("Erro!");
+	}
+	
+	public void updateRng16() {
+		this.rng16 = this.rng16 + generator.nextInt(2);
+	}
+	
 	public int getRng16() {
 		return rng16;
 	}

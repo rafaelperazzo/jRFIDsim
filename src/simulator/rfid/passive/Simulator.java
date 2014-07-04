@@ -671,6 +671,29 @@ public class Simulator implements Runnable{
 	}
 	
 	/**
+	 * Tags should decrement their counters
+	 */
+	protected void sendQueryDec() {
+		for (int i=0; i<this.tags.size(); i++) {
+			tags.get(i).updateRng16(-1);
+		}
+	}
+	
+	/**
+	 * Tags should increment their counters
+	 */
+	protected void sendQueryInc() {
+		for (int i=0; i<this.tags.size(); i++) {
+			if (tags.get(i).getRng16()!=0) {
+				tags.get(i).updateRng16(1);
+			}
+			/*else {
+				tags.get(i).updateRng16();
+			}*/
+		}
+	}
+	
+	/**
 	 * Set up each slot
 	 */
 	protected void prepareSlots() {
@@ -1136,13 +1159,33 @@ public class Simulator implements Runnable{
 	 * Start Q Algorithm (C1G2)
 	 */
 	protected void startQ() {
+		int start = 0;
+		int f = 0; //Success slot
+		
 		do {
 			this.initCurrentFrame();
-			this.sendQuery();
+			if (start==0) {
+				this.sendQuery();
+			}
+			else {
+				if (f==1) {
+					this.sendQueryDec();
+				}
+				else {
+					this.sendQuery();
+				}
+			}
 			this.iCounter++;
 			this.prepareSlots();
 			this.identifyTagsQ();
+			if (this.suc==1) {
+				f = 1;
+			}
+			else {
+				f=0;
+			}
 			this.finalizeFrameQ();
+			start++;
 		} while (end==false);
 	}
 	
@@ -1152,6 +1195,8 @@ public class Simulator implements Runnable{
 	protected void identifyTagsQ() {
 			if (frame.get(0).getSlotSize()>1) {
 				this.col++;
+				this.qfp = this.qfp + this.c; 
+				this.qfp = Math.min(15,this.qfp);
 			}
 			else if (frame.get(0).getSlotSize()==1) {
 				this.suc++;
@@ -1159,6 +1204,8 @@ public class Simulator implements Runnable{
 			}
 			else if (frame.get(0).getSlotSize()==0) {
 				this.idl++;
+				this.qfp = this.qfp - this.c;
+				this.qfp = Math.max(0, this.qfp);
 			}
 	}
 	
@@ -1168,19 +1215,19 @@ public class Simulator implements Runnable{
 	protected void finalizeFrameQ() {
 		this.totalSlots++;
 		
-		if ((this.qfp<=0)&&(this.idl==1)) {
+		if ((this.qfp<=0)) {
 			this.end = true;
 			this.frame.clear();
 		}
 		else {
-			if (this.col==1) {
+			/*if (this.col==1) {
 				this.qfp = this.qfp + this.c; 
 				this.qfp = Math.min(15,this.qfp);
 			}
 			else if (this.idl==1) {
 				this.qfp = this.qfp - this.c;
 				this.qfp = Math.max(0, this.qfp);
-			}
+			}*/
 			this.qValue = (int)Math.round(this.qfp);
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 			this.col = 0;
@@ -1336,66 +1383,87 @@ public class Simulator implements Runnable{
 	 * Start Dynamic BTSA
 	 */
 	protected void startDBTSA() {
-		//TODO IMPLEMENTAR DBTSA
-		do {
-			this.initCurrentFrame();
-			this.sendQuery();
-			this.iCounter++;
-			this.prepareSlots();
-			this.identifyTagsDBTSA();
-			this.finalizeFrameDBTSA();
-		} while (end==false);
+		this.qValue = 4;
+		this.qfp = 4;
+		this.c = 1;
+		this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+		this.DyBTSA();
 	}
 	
-	/**
-	 * Identify tags in DBTSA Algorithm
-	 */
-	protected void identifyTagsDBTSA() {
-			if (frame.get(0).getSlotSize()>1) { 
-				this.col++;
-				for (int j=0; j<frame.get(0).getTags().size(); j++) {
-					this.removeTag(frame.get(0).getTags().get(j).getCode());
-				}
-				this.identifyTagsInCollision(frame.get(0).getTags());
-			}
-			else if (frame.get(0).getSlotSize()==1) {
-				if (this.DBTSA_sc!=0) {
-					this.suc++;
-					this.removeTag(frame.get(0).getTags().get(0).getCode());
-				}
-				this.DBTSA_sc++;
-			}
-			else if (frame.get(0).getSlotSize()==0) {
-				this.idl++;
-			}
+	protected void DyBTSA() {
+		this.initCurrentFrame();
+		this.sendQuery();
+		this.iCounter++;
+		this.prepareSlots();
+		//Check Slots
+		if (frame.get(0).getSlotSize()>1) { //COLLISION 
+			this.qfp = this.qfp + this.c; 
+			this.qfp = Math.min(15,this.qfp);
+			this.prepareNextFrameDBTSA();
+			this.DyBTSA();
+		}
+		else if (frame.get(0).getSlotSize()==1) { //SUCCESS
+			this.totalSlots++;
+			this.DBTSA();
+		}
+		else if (frame.get(0).getSlotSize()==0) { //IDLE
+			this.qfp = this.qfp - this.c;
+			this.qfp = Math.max(0, this.qfp);
+			this.prepareNextFrameDBTSA();
+			this.DyBTSA();
+		}
 	}
 	
-	/**
-	 * Ends frame for DBTSA Algorithm
-	 */
-	protected void finalizeFrameDBTSA() {
+	protected void prepareNextFrameDBTSA() {
+		this.qValue = (int)Math.round(this.qfp);
+		this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
+		this.frames++;
+		this.frame.clear();
 		this.totalSlots++;
-		if (this.qfp<=0) {
-			this.end = true;
-			this.frame.clear();
-		}
-		else {
-			if (this.col==1) {
-				this.qfp = this.qfp + this.c; 
-				this.qfp = Math.min(15,this.qfp);
+	}
+	
+	protected void DBTSA() {
+		//SC = 0 and Broadcast Query with CurrentFrameSize
+		int sc = 0;
+		this.initCurrentFrame();
+		this.sendQuery();
+		this.iCounter++;
+		
+		do {
+			this.prepareSlots();
+			if (frame.get(0).getSlotSize()>1) { //COLLISION 
+				//BinTree
+				this.sendQueryInc();
+				this.prepareSlots();
+				this.BinTree();
 			}
-			else if (this.idl==1) {
-				this.qfp = this.qfp - this.c;
-				this.qfp = Math.max(0, this.qfp);
+			else if (frame.get(0).getSlotSize()==1) { //SUCCESS
+				this.suc++;
+				this.removeTag(frame.get(0).getTags().get(0).getCode());
+				this.sendQueryDec();
 			}
-			this.qValue = (int)Math.round(this.qfp);
-			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
-			this.col = 0;
-			this.idl = 0;
-			this.suc = 0;
-			this.frames++;
-			this.frame.clear();
-		}
+			else if (frame.get(0).getSlotSize()==0) { //IDLE
+				this.sendQueryDec();
+			}
+			
+			sc++;
+			this.totalSlots++;
+		} while (sc<this.currentFrameSize);
+	}
+	
+	protected void BinTree() {
+		int b = 2;
+		do {
+			
+			
+			
+		} while (b>0);
+	}
+	
+	protected void sendQueryBT(Slot s) {
+		
+		
+		
 	}
 	
 	@Override

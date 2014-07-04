@@ -7,6 +7,19 @@ import org.junit.Test;
 public class C1G2Test extends TestCase{
 	
 	@Test
+	public void testC1G2Method() {
+		Simulator s;
+		
+		for (int i=0; i<=10; i++) {
+			s = new Simulator(100,SimulatorConstants.C1G2, 4,50,90,100,100,false,1);
+			assertEquals(100,s.tags.size());
+			s.startDFSA();
+			assertEquals(0,s.tags.size());
+			assertEquals(0.33, s.getStatsDataSef().get(100).getMean(),0.025);
+		}
+	} /*
+	
+	@Test
 	public void testDBTSAMethod() {
 		Simulator s;
 		
@@ -32,18 +45,7 @@ public class C1G2Test extends TestCase{
 		}
 	}
 	
-	@Test
-	public void testC1G2Method() {
-		Simulator s;
-		
-		for (int i=0; i<=1; i++) {
-			s = new Simulator(100,SimulatorConstants.C1G2, 4,50,90,100,100,false,1);
-			assertEquals(100,s.tags.size());
-			s.startDFSA();
-			assertEquals(0,s.tags.size());
-			assertEquals(0.33, s.getStatsDataSef().get(100).getMean(),0.025);
-		}
-	}
+	
 	
 	@Test
 	public void testMiniC1G2Method() {
@@ -110,25 +112,6 @@ public class C1G2Test extends TestCase{
 			assertEquals(0.34, s.getStatsDataSef().get(1000).getMean(),0.025);
 		}
 	}
-	/*
-	@Test
-	public void testTagsInCollision() {
-		Simulator s;
-		s = new Simulator(100,SimulatorConstants.DBTSA, 4,50,90,3,100,false,1);
-		s.setC(1);
-		ArrayList<Tag> tagsInCollision = new ArrayList<Tag>();
-		tagsInCollision.add(new Tag(10));
-		tagsInCollision.add(new Tag(20));
-		tagsInCollision.add(new Tag(30));
-		tagsInCollision.add(new Tag(40));
-		tagsInCollision.add(new Tag(50));
-		tagsInCollision.add(new Tag(60));
-		tagsInCollision.add(new Tag(70));
-		for (int i=0; i<100; i++) {
-			s.identifyTagsInCollision(tagsInCollision);
-		}
-		
-		
-	}
+	
 	*/
 }
