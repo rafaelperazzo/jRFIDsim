@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Locale;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -671,9 +670,27 @@ public class Simulator implements Runnable{
 	}
 	
 	/**
+	 * Tags should generate a random Number
+	 */
+	protected void sendQuery(ArrayList<Tag> tags) {
+		for (int i=0; i<this.tags.size(); i++) {
+			tags.get(i).setRng16(this.currentFrameSize);
+		}
+	}
+	
+	/**
 	 * Tags should decrement their counters
 	 */
 	protected void sendQueryDec() {
+		for (int i=0; i<this.tags.size(); i++) {
+			tags.get(i).updateRng16(-1);
+		}
+	}
+	
+	/**
+	 * Tags should decrement their counters
+	 */
+	protected void sendQueryDec(ArrayList<Tag> tags) {
 		for (int i=0; i<this.tags.size(); i++) {
 			tags.get(i).updateRng16(-1);
 		}
@@ -694,11 +711,30 @@ public class Simulator implements Runnable{
 	}
 	
 	/**
+	 * Tags should increment their counters
+	 */
+	protected void sendQueryInc(ArrayList<Tag> tags) {
+		for (int i=0; i<this.tags.size(); i++) {
+			if (tags.get(i).getRng16()!=0) {
+				tags.get(i).updateRng16(1);
+			}
+			/*else {
+				tags.get(i).updateRng16();
+			}*/
+		}
+	}
+	
+	/**
 	 * Set up each slot
 	 */
 	protected void prepareSlots() {
-		for (int i=0; i<this.tags.size(); i++) {
+		for (int i=0; i<tags.size(); i++) {
 			int rng16 = tags.get(i).getRng16();
+			if (rng16==this.currentFrameSize) { 
+				tags.get(i).setRng16(this.currentFrameSize);
+				rng16 = tags.get(i).getRng16();
+			}
+			
 			frame.get(rng16).addTag(tags.get(i));
 		}
 	}
@@ -1391,27 +1427,35 @@ public class Simulator implements Runnable{
 	}
 	
 	protected void DyBTSA() {
-		this.initCurrentFrame();
-		this.sendQuery();
-		this.iCounter++;
-		this.prepareSlots();
-		//Check Slots
-		if (frame.get(0).getSlotSize()>1) { //COLLISION 
-			this.qfp = this.qfp + this.c; 
-			this.qfp = Math.min(15,this.qfp);
-			this.prepareNextFrameDBTSA();
-			this.DyBTSA();
-		}
-		else if (frame.get(0).getSlotSize()==1) { //SUCCESS
-			this.totalSlots++;
-			this.DBTSA();
-		}
-		else if (frame.get(0).getSlotSize()==0) { //IDLE
-			this.qfp = this.qfp - this.c;
-			this.qfp = Math.max(0, this.qfp);
-			this.prepareNextFrameDBTSA();
-			this.DyBTSA();
-		}
+		
+		boolean run=true;
+		
+		do {
+			this.initCurrentFrame();
+			this.sendQuery();
+			this.iCounter++;
+			this.prepareSlots();
+			//Check Slots
+			if (frame.get(0).getSlotSize()>1) { //COLLISION 
+				this.qfp = this.qfp + this.c; 
+				this.qfp = Math.min(15,this.qfp);
+				this.prepareNextFrameDBTSA();
+			}
+			else if (frame.get(0).getSlotSize()==1) { //SUCCESS
+				System.out.println("(SUCESSO)Q Value: " + this.qValue);
+				System.out.println("Frame Size: " + this.currentFrameSize);
+				this.prepareNextFrameDBTSA();
+				run = false;
+			}
+			else if (frame.get(0).getSlotSize()==0) { //IDLE
+				this.qfp = this.qfp - this.c;
+				this.qfp = Math.max(0, this.qfp);
+				this.prepareNextFrameDBTSA();
+			}
+		} while(run);
+		
+		this.DBTSA();
+		
 	}
 	
 	protected void prepareNextFrameDBTSA() {
@@ -1423,24 +1467,30 @@ public class Simulator implements Runnable{
 	}
 	
 	protected void DBTSA() {
+		System.out.println("Começou DBTSA...");
+		System.out.println("Q: " + this.qValue);
+		System.out.println("Tags: " + tags.size());
+		
+		
 		//SC = 0 and Broadcast Query with CurrentFrameSize
 		int sc = 0;
 		this.initCurrentFrame();
 		this.sendQuery();
 		this.iCounter++;
-		
 		do {
+			this.cleanFrame();
 			this.prepareSlots();
+			this.printFrame();
 			if (frame.get(0).getSlotSize()>1) { //COLLISION 
 				//BinTree
 				this.sendQueryInc();
-				this.prepareSlots();
-				this.BinTree();
+				//this.BinTree();
 			}
 			else if (frame.get(0).getSlotSize()==1) { //SUCCESS
 				this.suc++;
 				this.removeTag(frame.get(0).getTags().get(0).getCode());
 				this.sendQueryDec();
+
 			}
 			else if (frame.get(0).getSlotSize()==0) { //IDLE
 				this.sendQueryDec();
@@ -1448,22 +1498,70 @@ public class Simulator implements Runnable{
 			
 			sc++;
 			this.totalSlots++;
+			
 		} while (sc<this.currentFrameSize);
 	}
 	
 	protected void BinTree() {
 		int b = 2;
+		ArrayList<Slot> btFrame = new ArrayList<Slot>();
+		
 		do {
-			
-			
-			
+			btFrame = this.sendQueryBT(frame.get(0));
+			if (btFrame.get(0).getSlotSize()>1) { //COLLISION
+				
+			}
+			else if (btFrame.get(0).getSlotSize()==1) { //SUCCESS
+				this.suc++;
+				this.removeTag(btFrame.get(0).getTags().get(0).getCode());
+			}
+			else if (btFrame.get(0).getSlotSize()==0) { //IDLE
+				
+			}
+			this.totalSlots++;
 		} while (b>0);
 	}
 	
-	protected void sendQueryBT(Slot s) {
+	protected ArrayList<Slot> sendQueryBT(Slot s) {
 		
+		ArrayList<Slot> btFrame = new ArrayList<Slot>();
 		
+		for (int i=0; i<2; i++) {
+			btFrame.add(new Slot());
+		}
 		
+		//D-BTSA Algorithm Line 14 (page 22)
+		for (int i=0; i<s.getSlotSize(); i++) {
+			s.getTags().get(i).setRng16(2);
+		}
+		
+		for (int i=0; i<s.getTags().size(); i++) {
+			int rng16 = s.getTags().get(i).getRng16();
+			btFrame.get(rng16).addTag(tags.get(i));
+		}
+		
+		return btFrame;
+		
+	}
+	
+	private void printFrame() {
+		System.out.println("----------------------------------------------------------");
+		for (int i=0; i<frame.size(); i++) {
+			//if (i==0) {
+			System.out.print("(" + i + ")");	
+			for (int j=0; j<frame.get(i).getSlotSize(); j++) {
+				System.out.print("[" + frame.get(i).getTags().get(j).getCode() + "] ");
+			}
+			System.out.println(" ");
+			//}
+			
+		}
+	}
+	
+	protected void cleanFrame() {
+		for (int i=0; i<frame.size(); i++) {
+			frame.get(i).getTags().clear();
+		}
 	}
 	
 	@Override

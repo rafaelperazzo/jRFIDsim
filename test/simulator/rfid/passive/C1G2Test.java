@@ -7,6 +7,13 @@ import org.junit.Test;
 public class C1G2Test extends TestCase{
 	
 	@Test
+	public void testDBTSA() {
+		Simulator s;
+		s = new Simulator(20,SimulatorConstants.DBTSA, 4,50,90,100,100,false,1);
+		s.startDBTSA();
+	}
+	/*
+	@Test
 	public void testC1G2Method() {
 		Simulator s;
 		
