@@ -9,8 +9,12 @@ public class C1G2Test extends TestCase{
 	@Test
 	public void testDBTSA() {
 		Simulator s;
-		s = new Simulator(20,SimulatorConstants.DBTSA, 4,50,90,100,100,false,1);
-		s.startDBTSA();
+		for (int i =0; i<=0; i++) {
+			s = new Simulator(20,SimulatorConstants.DBTSA, 4,50,90,100,100,false,1);
+			s.startDBTSA();
+		}
+		
+		//System.out.println(s.tags.size());
 	}
 	/*
 	@Test

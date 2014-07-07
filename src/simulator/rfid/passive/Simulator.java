@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Locale;
+
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -1415,6 +1416,10 @@ public class Simulator implements Runnable{
 	}
 	
 
+//************************************************************************************************
+	//DBTSA - Start
+//************************************************************************************************
+	
 	/**
 	 * Start Dynamic BTSA
 	 */
@@ -1442,8 +1447,6 @@ public class Simulator implements Runnable{
 				this.prepareNextFrameDBTSA();
 			}
 			else if (frame.get(0).getSlotSize()==1) { //SUCCESS
-				System.out.println("(SUCESSO)Q Value: " + this.qValue);
-				System.out.println("Frame Size: " + this.currentFrameSize);
 				this.prepareNextFrameDBTSA();
 				run = false;
 			}
@@ -1467,10 +1470,6 @@ public class Simulator implements Runnable{
 	}
 	
 	protected void DBTSA() {
-		System.out.println("Começou DBTSA...");
-		System.out.println("Q: " + this.qValue);
-		System.out.println("Tags: " + tags.size());
-		
 		
 		//SC = 0 and Broadcast Query with CurrentFrameSize
 		int sc = 0;
@@ -1483,8 +1482,9 @@ public class Simulator implements Runnable{
 			this.printFrame();
 			if (frame.get(0).getSlotSize()>1) { //COLLISION 
 				//BinTree
+				this.colSlots++;
 				this.sendQueryInc();
-				//this.BinTree();
+				this.BinTree();
 			}
 			else if (frame.get(0).getSlotSize()==1) { //SUCCESS
 				this.suc++;
@@ -1493,35 +1493,49 @@ public class Simulator implements Runnable{
 
 			}
 			else if (frame.get(0).getSlotSize()==0) { //IDLE
+				this.idlSlots++;
 				this.sendQueryDec();
 			}
 			
 			sc++;
 			this.totalSlots++;
-			
 		} while (sc<this.currentFrameSize);
 	}
 	
 	protected void BinTree() {
 		int b = 2;
 		ArrayList<Slot> btFrame = new ArrayList<Slot>();
+		btFrame = this.sendQueryBT(frame.get(0));
+		ArrayList<Tag> tagsInCol;
+		tagsInCol = this.copyTagList(frame.get(0));
 		
 		do {
-			btFrame = this.sendQueryBT(frame.get(0));
+			//this.printSubFrame(btFrame);
 			if (btFrame.get(0).getSlotSize()>1) { //COLLISION
-				
+				this.updateTagsInCol(btFrame, tagsInCol, 1,0);
+				b++;
+				this.colSlots++;
 			}
 			else if (btFrame.get(0).getSlotSize()==1) { //SUCCESS
 				this.suc++;
-				this.removeTag(btFrame.get(0).getTags().get(0).getCode());
+				this.updateTagsInCol(btFrame, tagsInCol, -1,1);
+				//this.removeTag(btFrame.get(0).getTags().get(0).getCode());
+				b--;
 			}
 			else if (btFrame.get(0).getSlotSize()==0) { //IDLE
-				
+				this.updateTagsInCol(btFrame, tagsInCol, -1,2);
+				b--;
+				this.idlSlots++;
 			}
 			this.totalSlots++;
 		} while (b>0);
 	}
 	
+	/**
+	 * Set up the Frame with collided tags
+	 * @param s Slot with collided tags
+	 * @return A frame with the collided slots
+	 */
 	protected ArrayList<Slot> sendQueryBT(Slot s) {
 		
 		ArrayList<Slot> btFrame = new ArrayList<Slot>();
@@ -1537,11 +1551,87 @@ public class Simulator implements Runnable{
 		
 		for (int i=0; i<s.getTags().size(); i++) {
 			int rng16 = s.getTags().get(i).getRng16();
-			btFrame.get(rng16).addTag(tags.get(i));
+			btFrame.get(rng16).addTag(s.getTags().get(i));
 		}
 		
 		return btFrame;
 		
+	}
+	
+	
+	protected void cleanFrame() {
+		for (int i=0; i<frame.size(); i++) {
+			frame.get(i).getTags().clear();
+		}
+	}
+	
+	protected void cleanFrame(ArrayList<Slot> btFrame) {
+		for (int i=0; i<btFrame.size(); i++) {
+			btFrame.get(i).getTags().clear();
+		}
+	}
+	
+	protected void prepareSlots(ArrayList<Slot> btFrame, ArrayList<Tag> colTags) {
+		for (int i=0; i<colTags.size(); i++) {
+			int rng16 = colTags.get(i).getRng16();
+			if (rng16>=btFrame.size()) {
+				btFrame.add(new Slot());
+			}
+			btFrame.get(rng16).addTag(colTags.get(i));
+		}
+	}
+	
+	protected ArrayList<Tag> copyTagList(Slot s) {
+		
+		ArrayList<Tag> list = new ArrayList<Tag>();
+		
+		for (int i=0; i<s.getSlotSize(); i++) {
+			list.add(s.getTags().get(i));
+		}
+		
+		return list;
+	}
+	
+	protected void updateTagsInCol(ArrayList<Slot> btFrame, ArrayList<Tag> tags, int value, int slotType) {
+		
+		for (int i=tags.size()-1; i>=0; i--) {
+			if (slotType==0) { //COLLISION
+				
+				if (tags.get(i).getRng16()==0) { //Tag in collision Rng16=0
+					tags.get(i).updateRng16(); //Tag update its rng16 value to 0 or 1
+				}
+				else {
+					tags.get(i).updateRng16(value);
+				}
+			}
+			else if (slotType==1) { //SUCCESS
+				if (tags.get(i).getRng16()==0) { //Tag success Rng16=0
+					int code = tags.get(i).getCode();
+					tags.remove(i);
+					this.removeTag(code);
+				}
+				else {
+					tags.get(i).updateRng16(value);
+				}
+			}
+			else if (slotType==2) { //IDLE 
+				tags.get(i).updateRng16(-1);
+			}
+		}
+		
+		this.cleanFrame(btFrame);
+		this.prepareSlots(btFrame, tags);
+		
+	}
+	
+	protected void removeTag(ArrayList<Tag> tags ,int code) {
+		for (int i=0; i<tags.size(); i++) {
+			if (tags.get(i).getCode()==code) {
+				tags.remove(i);
+				
+				break;
+			}
+		}
 	}
 	
 	private void printFrame() {
@@ -1558,11 +1648,24 @@ public class Simulator implements Runnable{
 		}
 	}
 	
-	protected void cleanFrame() {
+	@SuppressWarnings("unused")
+	private void printSubFrame(ArrayList<Slot> frame) {
+		System.out.println("----------------------------------------------------------");
 		for (int i=0; i<frame.size(); i++) {
-			frame.get(i).getTags().clear();
+			//if (i==0) {
+			System.out.print("(" + i + ")");	
+			for (int j=0; j<frame.get(i).getSlotSize(); j++) {
+				System.out.print("[" + frame.get(i).getTags().get(j).getCode() + "] ");
+			}
+			System.out.println(" ");
+			//}
+			
 		}
 	}
+	
+	//************************************************************************************************
+		//DBTSA - END
+	//************************************************************************************************
 	
 	@Override
 	public void run() {
