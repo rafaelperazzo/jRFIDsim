@@ -9,9 +9,11 @@ public class C1G2Test extends TestCase{
 	@Test
 	public void testDBTSA() {
 		Simulator s;
-		for (int i =0; i<=0; i++) {
+		for (int i =0; i<=1000; i++) {
 			s = new Simulator(20,SimulatorConstants.DBTSA, 4,50,90,100,100,false,1);
 			s.startDBTSA();
+			//System.out.println(s.numberOfTags/(float)s.totalSlots);
+			assertEquals(0,s.tags.size());
 		}
 		
 		//System.out.println(s.tags.size());

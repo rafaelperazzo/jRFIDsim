@@ -259,6 +259,7 @@ public class Simulator implements Runnable{
 		methods.put(5, "C1G2");
 		methods.put(6, "DBTSA");
 		methods.put(7, "MOTA");
+		methods.put(8, "ODFSA");
 		statsTotal.clear();
 		statsSef.clear();
 		statsInst.clear();
@@ -295,6 +296,7 @@ public class Simulator implements Runnable{
 		methods.put(5, "C1G2");
 		methods.put(6, "DBTSA");
 		methods.put(7, "MOTA");
+		methods.put(8, "ODFSA");
 		//this.end = false;
 		this.numberOfTags = numTags;
 		this.initialFrameSize = initialFrameSize;
@@ -306,11 +308,21 @@ public class Simulator implements Runnable{
 			this.currentFrameSize = (int)Math.round(Math.pow(2,this.qValue));
 		} 
 		this.iCounter = 0;
-		this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust + ".txt";
-		this.statsTotalFile = "02_TOTAL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags  + "." + this.estimationAdjust + ".txt";
-		this.statsInstFile = "03_FRAMES." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust +".txt";
-		this.statsColFile = "04_COL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust  + ".txt";
-		this.statsIdlFile = "05_IDL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust + ".txt";
+		if (this.estimationAdjust!=0) {
+			this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust + ".txt";
+			this.statsTotalFile = "02_TOTAL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags  + "." + this.estimationAdjust + ".txt";
+			this.statsInstFile = "03_FRAMES." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust +".txt";
+			this.statsColFile = "04_COL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust  + ".txt";
+			this.statsIdlFile = "05_IDL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + this.estimationAdjust + ".txt";
+		}
+		else {
+			this.statsSefFile = "01_SEF." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + "txt";
+			this.statsTotalFile = "02_TOTAL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags  + "." + "txt";
+			this.statsInstFile = "03_FRAMES." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + "txt";
+			this.statsColFile = "04_COL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + "txt";
+			this.statsIdlFile = "05_IDL." + methods.get(this.method) + "." + this.initialFrameSize + "." + this.maxTags + "." + "txt";
+		}
+		
 		File f = new File(this.statsInstFile);
 		if (f.exists()) f.delete();
 		f = new File(this.statsSefFile);
@@ -838,6 +850,9 @@ public class Simulator implements Runnable{
 			else if (this.method==SimulatorConstants.EOMLEE) {
 				this.currentFrameSize = this.eomlee(this.col, this.suc, 0.001, this.currentFrameSize);
 			}
+			else if (this.method==SimulatorConstants.ODFSA) {
+				this.currentFrameSize = this.currentFrameSize - this.suc;
+			}
 			else {
 				this.currentFrameSize = this.col*2;
 			}
@@ -854,6 +869,12 @@ public class Simulator implements Runnable{
 	 * Start the Standard DFSA procedure
 	 */
 	protected void standardDfsa() {
+		
+		if (this.method==SimulatorConstants.ODFSA) {
+			this.initialFrameSize = this.numberOfTags;
+			this.currentFrameSize = this.numberOfTags;
+		}
+		
 		do {
 			this.initCurrentFrame();
 			this.sendQuery();
@@ -941,6 +962,10 @@ public class Simulator implements Runnable{
 					this.startDBTSA();
 				}
 				
+				else if (this.method==SimulatorConstants.ODFSA) { //ODFSA
+					this.standardDfsa();
+				} 
+				
 				statsTotal.addValue(this.totalSlots);
 				statsSef.addValue((this.numberOfTags/(float)this.totalSlots));
 				statsInst.addValue(this.iCounter);
@@ -951,6 +976,11 @@ public class Simulator implements Runnable{
 			this.setupStatsHashTable();
 			if (this.debug) {
 				this.writeStatsToFile();
+				this.statsTotal.clear();
+				this.statsSef.clear();
+				this.statsInst.clear();
+				this.statsCol.clear();
+				this.statsIdl.clear();
 			}
 		}
 		//****************** END DFSA ****************
@@ -1477,24 +1507,26 @@ public class Simulator implements Runnable{
 		this.sendQuery();
 		this.iCounter++;
 		do {
+			//System.out.println(sc);
 			this.cleanFrame();
 			this.prepareSlots();
-			this.printFrame();
-			if (frame.get(0).getSlotSize()>1) { //COLLISION 
+			//this.printFrame();
+			if (frame.get(sc).getSlotSize()>1) { //COLLISION 
 				//BinTree
 				this.colSlots++;
-				this.sendQueryInc();
-				this.BinTree();
+				//this.sendQueryInc();
+				this.BinTree(sc);
 			}
-			else if (frame.get(0).getSlotSize()==1) { //SUCCESS
+			else if (frame.get(sc).getSlotSize()==1) { //SUCCESS
 				this.suc++;
-				this.removeTag(frame.get(0).getTags().get(0).getCode());
-				this.sendQueryDec();
+				//System.out.println("Tag " + frame.get(sc).getTags().get(0).getCode() + " identificada!!");
+				this.removeTag(frame.get(sc).getTags().get(0).getCode());
+				//this.sendQueryDec();
 
 			}
-			else if (frame.get(0).getSlotSize()==0) { //IDLE
+			else if (frame.get(sc).getSlotSize()==0) { //IDLE
 				this.idlSlots++;
-				this.sendQueryDec();
+				//this.sendQueryDec();
 			}
 			
 			sc++;
@@ -1502,12 +1534,13 @@ public class Simulator implements Runnable{
 		} while (sc<this.currentFrameSize);
 	}
 	
-	protected void BinTree() {
+	protected void BinTree(int slot) {
+		//System.out.println("Entrou no BTree");
 		int b = 2;
 		ArrayList<Slot> btFrame = new ArrayList<Slot>();
-		btFrame = this.sendQueryBT(frame.get(0));
+		btFrame = this.sendQueryBT(frame.get(slot));
 		ArrayList<Tag> tagsInCol;
-		tagsInCol = this.copyTagList(frame.get(0));
+		tagsInCol = this.copyTagList(frame.get(slot));
 		
 		do {
 			//this.printSubFrame(btFrame);
@@ -1518,6 +1551,7 @@ public class Simulator implements Runnable{
 			}
 			else if (btFrame.get(0).getSlotSize()==1) { //SUCCESS
 				this.suc++;
+				//System.out.println("Tag " + btFrame.get(0).getTags().get(0).getCode() + " identificada!");
 				this.updateTagsInCol(btFrame, tagsInCol, -1,1);
 				//this.removeTag(btFrame.get(0).getTags().get(0).getCode());
 				b--;
@@ -1529,6 +1563,7 @@ public class Simulator implements Runnable{
 			}
 			this.totalSlots++;
 		} while (b>0);
+		//System.out.println("Saiu no BTree");
 	}
 	
 	/**
@@ -1634,6 +1669,7 @@ public class Simulator implements Runnable{
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void printFrame() {
 		System.out.println("----------------------------------------------------------");
 		for (int i=0; i<frame.size(); i++) {

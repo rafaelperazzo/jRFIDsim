@@ -11,6 +11,7 @@ public class SimulatorConstants {
 	public final static int C1G2 = 5;
 	public final static int DBTSA = 6;
 	public final static int MOTA = 7;
+	public final static int ODFSA = 8;
 	private static Hashtable<Integer, String> methods = new Hashtable<Integer,String>();
 	
 	public static void startHashTable() {
@@ -21,6 +22,7 @@ public class SimulatorConstants {
 		methods.put(5, "C1G2");
 		methods.put(6, "DBTSA");
 		methods.put(7, "MOTA");
+		methods.put(8, "ODFSA");
 	}
 	
 	public static String getName(int m) {
